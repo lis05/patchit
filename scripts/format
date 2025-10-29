@@ -1,0 +1,6 @@
+#!/bin/env bash
+
+for item in $(find src -regextype sed -regex ".*\.[ch]pp"); do
+	echo "Formatting $item"
+	clang-format -i $item
+done
