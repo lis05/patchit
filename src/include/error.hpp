@@ -27,3 +27,9 @@ bool print_message(MessageLevel level, int line, const char *file,
 #define WARN(...) print_message(LEVEL_WARN, __LINE__, __FILE__, __VA_ARGS__)
 #define INFO(...) print_message(LEVEL_INFO, __LINE__, __FILE__, __VA_ARGS__)
 #define DEBUG(...) print_message(LEVEL_DEBUG, __LINE__, __FILE__, __VA_ARGS__)
+
+#define ASSERT(value, ...)                      \
+    do {                                        \
+        if (!(value))                           \
+            ERROR("Assertion failed: " #value); \
+    } while (0)
