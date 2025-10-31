@@ -100,5 +100,6 @@ int main(int argc, char **argv) {
         }
     }
 
-    CRIT("No command selected. Aborting.\n");
+    MSG("No command selected. Aborting.\n");
+	return -1;
 }
