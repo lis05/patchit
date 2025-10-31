@@ -8,13 +8,12 @@
 #include <utility>
 
 static struct option const long_opts[] = {
-    {"help", 0, 0, 'h'},
-    {"verbose", 0, nullptr, 'v'},
-    {"debug", 0, nullptr, 'd'},
+    {"help", 0, nullptr, 'h'},    {"version", 0, nullptr, 'v'},
+    {"verbose", 0, nullptr, 'V'}, {"debug", 0, nullptr, 'D'},
     {nullptr, 0, nullptr, 0},
 };
 
-static const char *const short_opts = "-hvd";
+static const char *const short_opts = "-hvVD";
 
 static const std::pair<const char *, CommandHandler> command_list[] = {
     {"create", do_command_create},
@@ -28,8 +27,9 @@ static void print_help() {
         "\n"
         "Options:\n"
         "  -h, --help               show this message\n"
-        "  -v, --verbose            increase verbosity level (1 per v)\n"
-        "  -d, --debug              set verbosity level to maximal (debug)\n"
+		"  -v, --version			print version info\n"
+        "  -V, --verbose            increase verbosity level (1 per V)\n"
+        "  -D, --debug              set verbosity level to maximal (debug)\n"
         "\n"
         "Supported commands:\n"
         "  create                   create a new patch\n"
@@ -37,6 +37,19 @@ static void print_help() {
 		"  inspect                  inspect contents of a patch\n"
 	);
     // clang-format on
+}
+
+static void print_version() {
+    const std::string &version = Config::get().version;
+    uint64_t           compatibility_version = Config::get().compatibility_version;
+
+    printf("Version: %s\n", version.c_str());
+
+    if (compatibility_version != (uint64_t)-1) {
+        printf("Compatibility version: %llu\n", compatibility_version);
+    } else {
+        printf("Incompatible with all patches. Please reinstall.\n");
+    }
 }
 
 int main(int argc, char **argv) {
@@ -53,9 +66,12 @@ int main(int argc, char **argv) {
             print_help();
             return 0;
         case 'v':
+            print_version();
+            return 0;
+        case 'V':
             Config::get().verbosity++;
             break;
-        case 'd':
+        case 'D':
             Config::get().verbosity = 10;
             break;
         case '?':

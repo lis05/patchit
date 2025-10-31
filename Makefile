@@ -10,16 +10,22 @@ INC_DIR := src/include
 OBJ_DIR := obj
 BUILD_DIR := build
 SCRIPTS_DIR := scripts
-SOURCES = $(wildcard $(SRC_DIR)/*.cpp)
-HEADERS = $(wildcard $(INC_DIR)/*.hpp)
-OBJECTS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SOURCES))
-BINARY = $(BUILD_DIR)/patchit
+SOURCES := $(wildcard $(SRC_DIR)/*.cpp)
+HEADERS := $(wildcard $(INC_DIR)/*.hpp)
+OBJECTS := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SOURCES))
+BINARY := $(BUILD_DIR)/patchit
+
+VERSION := $(shell ./$(SCRIPTS_DIR)/getversion.sh)
+COMPATIBILITY_VERSION := 0
 
 $(BINARY): $(OBJECTS)
 	$(LD) $(LDFLAGS) -o $@ $^
 
 $(OBJECTS): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
-	$(CXX) $(CXXFLAGS) -c -o $@ $< -I${INC_DIR}
+	$(CXX) $(CXXFLAGS) -c -o $@ $< -I${INC_DIR} \
+		-DPATCHIT_VERSION='"$(VERSION)"' \
+		-DPATCHIT_COMPATIBILITY_VERSION=$(COMPATIBILITY_VERSION)
+
 
 .PHONY: clean
 clean:
@@ -41,6 +47,8 @@ vars:
 	@echo HEADERS = $(HEADERS)
 	@echo OBJECTS = $(OBJECTS)
 	@echo BINARY = $(BINARY)
+	@echo VERSION = $(VERSION)
+	@echo COMPATIBILITY_VERSION = $(COMPATIBILITY_VERSION)
 
 .PHONY: format
 format:
