@@ -2,7 +2,7 @@ SHELL=/bin/bash
 
 CXX := g++
 LD := g++
-CXXFLAGS := -O0 -g
+CXXFLAGS := -O0 -g --std=c++20
 LDFLAGS :=
 
 SRC_DIR := src
