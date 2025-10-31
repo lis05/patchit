@@ -40,7 +40,7 @@ static void print_help() {
 }
 
 int main(int argc, char **argv) {
-    char short_option;
+    char        short_option;
     const char *command;
 
     opterr = 0;
