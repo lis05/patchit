@@ -1,9 +1,11 @@
 #include <getopt.h>
-#include <cstring>
-#include <cstdio>
 
+#include <commands.hpp>
 #include <config.hpp>
+#include <cstdio>
+#include <cstring>
 #include <error.hpp>
+#include <utility>
 
 static struct option const long_opts[] = {
     {"help", 0, 0, 'h'},
@@ -14,10 +16,13 @@ static struct option const long_opts[] = {
 
 static const char *const short_opts = "-hvd";
 
-static const char *const COMMAND_CREATE = "create";
-static const char *const COMMAND_APPLY = "apply";
+static const std::pair<const char *, CommandHandler> command_list[] = {
+    {"create", do_command_create},
+    {"apply", do_command_apply},
+    {"inspect", do_command_inspect}};
 
 static void print_help() {
+    // clang-format off
     printf(
         "Usage: patchit [OPTIONS] COMMAND ...\n"
         "\n"
@@ -28,19 +33,22 @@ static void print_help() {
         "\n"
         "Supported commands:\n"
         "  create                   create a new patch\n"
-        "  apply                    apply the given patch\n");
+        "  apply                    apply the given patch\n"
+		"  inspect                  inspect contents of a patch\n"
+	);
+    // clang-format on
 }
 
 int main(int argc, char **argv) {
     char short_option;
-	const char *command;
+    const char *command;
 
     opterr = 0;
     while ((short_option = getopt_long(argc, argv, short_opts, long_opts, 0)) !=
            -1) {
         DEBUG("Processing option -%c (%d)\n", short_option, (int)short_option);
 
-		switch (short_option) {
+        switch (short_option) {
         case 'h':
             print_help();
             return 0;
@@ -51,30 +59,30 @@ int main(int argc, char **argv) {
             Config::get().verbosity = 10;
             break;
         case '?':
-            if (optopt)
+            if (optopt) {
                 CRIT("Unrecognized option: -%c\n", optopt);
-            else if (argv[optind - 1])
+            } else if (argv[optind - 1]) {
                 CRIT("Unrecognized option (possibly '%s')\n", argv[optind - 1]);
-            else
+            } else {
                 CRIT("Unrecognized option.\n");
-            break;
+            }
         case 1:
-			command = argv[optind - 1];
+            command = argv[optind - 1];
             ASSERT(command);
 
-			DEBUG("Processing command %s\n", command);
+            DEBUG("Processing command %s\n", command);
 
-			if (!strcmp(command, COMMAND_CREATE)) {
-				//
-			}
-			else if (!strcmp(command, COMMAND_APPLY)) {
-				//
-			}
-            break;
+            for (auto &[name, func] : command_list) {
+                if (!strcmp(command, name)) {
+                    return func(argc - optind, argv + optind);
+                }
+            }
+
+            CRIT("Unrecognized option: %s\n", command);
         default:
             CRIT("Failed parsing options.\n");
         }
     }
 
-    return 0;
+    CRIT("No command selected. Aborting.\n");
 }

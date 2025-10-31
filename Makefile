@@ -45,3 +45,4 @@ vars:
 .PHONY: format
 format:
 	bash $(SCRIPTS_DIR)/format
+

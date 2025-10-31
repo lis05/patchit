@@ -9,8 +9,9 @@ bool print_message(MessageLevel level, int line, const char *file,
     va_list args;
     const char *title;
 
-    if (!do_print)
+    if (!do_print) {
         return false;
+    }
 
     va_start(args, format);
     switch (level) {

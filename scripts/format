@@ -2,5 +2,6 @@
 
 for item in $(find src -regextype sed -regex ".*\.[ch]pp"); do
 	echo "Formatting $item"
+	clang-tidy -checks='readability-braces-around-statements' -fix $item -- -Isrc/include
 	clang-format -i $item
 done

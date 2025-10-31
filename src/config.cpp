@@ -6,7 +6,8 @@ Config::Config() {
 
 Config &Config::get() {
     static Config *instance = nullptr;
-    if (!instance)
+    if (!instance) {
         instance = new Config();
+    }
     return *instance;
 }
