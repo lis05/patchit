@@ -12,15 +12,15 @@ public:
     virtual int from_files(const std::string &src, const std::string &dest) = 0;
 
     /*
-     * Return uncompressed binary reprezentation of the diff.
+     * Return uncompressed binary representation of the diff.
      */
     virtual std::vector<std::byte> binary_representation() = 0;
 
     /*
-     * Reconstruct the diff from its given binary reprezentation.
+     * Reconstruct the diff from its given binary representation.
      * Returns 0 on success.
      */
-    virtual int from_binary_reprezentation(const std::vector<std::byte> &data) = 0;
+    virtual int from_binary_representation(const std::vector<std::byte> &data) = 0;
 };
 
 class NativeDiff : public Diff {
@@ -43,9 +43,9 @@ private:
     std::vector<Record> changes;
 
 public:
-    NativeDiff();
+    NativeDiff() = default;
 
     int from_files(const std::string &src, const std::string &dest) override;
-    std::vector<std::byte> binary_reprezentation() override;
-    int from_binary_reprezentation(std::vector<std::byte> &data) override;
+    std::vector<std::byte> binary_representation() override;
+    int from_binary_representation(const std::vector<std::byte> &data) override;
 };

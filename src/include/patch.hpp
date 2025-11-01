@@ -17,15 +17,15 @@ public:
     virtual int apply() = 0;
 
     /*
-     * Return uncompressed binary reprezentation of the instruction.
+     * Return uncompressed binary representation of the instruction.
      */
-    virtual std::vector<std::byte> binary_reprezentation() = 0;
+    virtual std::vector<std::byte> binary_representation() = 0;
 
     /*
-     * Reconstruct the instruction from its given binary reprezentation.
+     * Reconstruct the instruction from its given binary representation.
      * Returns 0 on success.
      */
-    virtual int from_binary_reprezentation(const std::vector<std::byte> &data);
+    virtual int from_binary_representation(const std::vector<std::byte> &data);
 
     /*
      * Select the desired Compressor to use.
@@ -49,8 +49,8 @@ public:
                           const std::string &move_from, const std::string &move_to);
 
     int                    apply() override;
-    std::vector<std::byte> binary_reprezentation() override;
-    int from_binary_reprezentation(const std::vector<std::byte> &data) override;
+    std::vector<std::byte> binary_representation() override;
+    int from_binary_representation(const std::vector<std::byte> &data) override;
 };
 
 class EntityDeleteInstruction : public Instruction {
@@ -64,8 +64,8 @@ public:
                             std::string target);
 
     int                    apply() override;
-    std::vector<std::byte> binary_reprezentation() override;
-    int from_binary_reprezentation(const std::vector<std::byte> &data) override;
+    std::vector<std::byte> binary_representation() override;
+    int from_binary_representation(const std::vector<std::byte> &data) override;
 };
 
 class Diff;
@@ -85,8 +85,8 @@ public:
                             std::unique_ptr<Diff> diff);
 
     int                    apply() override;
-    std::vector<std::byte> binary_reprezentation() override;
-    int from_binary_reprezentation(const std::vector<std::byte> &data) override;
+    std::vector<std::byte> binary_representation() override;
+    int from_binary_representation(const std::vector<std::byte> &data) override;
 };
 
 class EntityChangePermissionsInstruction : public Instruction {
@@ -104,8 +104,8 @@ public:
                                        uint64_t flags);
 
     int                    apply() override;
-    std::vector<std::byte> binary_reprezentation() override;
-    int from_binary_reprezentation(const std::vector<std::byte> &data) override;
+    std::vector<std::byte> binary_representation() override;
+    int from_binary_representation(const std::vector<std::byte> &data) override;
 };
 
 class Patch {
