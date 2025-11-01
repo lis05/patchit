@@ -1,11 +1,11 @@
 #include <getopt.h>
+#include <utility>
 
 #include <commands.hpp>
 #include <config.hpp>
 #include <cstdio>
 #include <cstring>
 #include <error.hpp>
-#include <utility>
 
 static struct option const long_opts[] = {
     {"help", 0, nullptr, 'h'},    {"version", 0, nullptr, 'v'},
