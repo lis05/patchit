@@ -1,13 +1,15 @@
 #pragma once
 
 #include <cstddef>
+#include <string>
+#include <vector>
 
 class Diff {
 public:
     /*
      * Construct the diff from the given files.
      * */
-    virtual int from_files(const std::string &src, const std::string &dest);
+    virtual int from_files(const std::string &src, const std::string &dest) = 0;
 
     /*
      * Return uncompressed binary reprezentation of the diff.
@@ -23,25 +25,25 @@ public:
 
 class NativeDiff : public Diff {
 private:
-	enum RecordType: uint8_t {
-		ADD,
-		DELETE,
-	};
+    enum RecordType : uint8_t {
+        ADD,
+        DELETE,
+    };
 
-	class Record {
-		public:
-			RecordType type;
-			uint64_t start;
-			uint64_t len;
+    class Record {
+    public:
+        RecordType type;
+        uint64_t   start;
+        uint64_t   len;
 
-			/* If type is DELETE, data will be empty */
-			std::vector<std::byte> data;
-	};
+        /* If type is DELETE, data will be empty */
+        std::vector<std::byte> data;
+    };
 
-	std::vector<Record> changes;
+    std::vector<Record> changes;
 
 public:
-	NativeDiff();
+    NativeDiff();
 
     int from_files(const std::string &src, const std::string &dest) override;
     std::vector<std::byte> binary_reprezentation() override;
