@@ -21,6 +21,11 @@ public:
      * Returns 0 on success.
      */
     virtual int from_binary_representation(const std::vector<std::byte> &data) = 0;
+
+    /*
+     * Apply this patch to the data. Returns empty vector on error.
+     */
+    virtual std::vector<std::byte> apply(const std::vector<std::byte> &data) = 0;
 };
 
 class NativeDiff : public Diff {
@@ -42,10 +47,17 @@ private:
 
     std::vector<Record> changes;
 
+    /*
+     * Populate ::changes. Returns 0 on success.
+     */
+    int calculate(size_t src_size, std::byte *src_data, size_t dest_size,
+                  std::byte *dest_data);
+
 public:
     NativeDiff() = default;
 
     int from_files(const std::string &src, const std::string &dest) override;
     std::vector<std::byte> binary_representation() override;
     int from_binary_representation(const std::vector<std::byte> &data) override;
+    std::vector<std::byte> apply(const std::vector<std::byte> &data);
 };
