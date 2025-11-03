@@ -6,9 +6,86 @@
 #include <diff.hpp>
 #include <error.hpp>
 
+NativeDiff::Record::Record(NativeDiff::RecordType type, uint64_t pos) {
+    this->type = type;
+    this->pos = pos;
+}
+
 int NativeDiff::calculate(size_t src_size, std::byte *src_data, size_t dest_size,
                           std::byte *dest_data) {
-	// TODO
+    int r = 0;
+    changes.clear();
+
+    if (src_size == 0 && dest_size == 0) {
+        WARN("No changes, no data.\n");
+        return 0;
+    }
+
+    size_t *best = NULL, *choice = NULL, prefix_max;
+
+    try {
+        /* Handle annoying base cases. */
+
+        if (src_size == 0) {
+            INFO("Source size is zero.\n");
+            Record rec(NativeDiff::ADD, 0);
+            std::get<0>(rec.data).reserve(dest_size);
+            for (size_t i = 0; i < dest_size; i++) {
+                std::get<0>(rec.data).push_back(dest_data[i]);
+            }
+            changes.push_back(rec);
+            return 0;
+        }
+
+        if (dest_size == 0) {
+            INFO("Destination size is zero.\n");
+            Record rec(NativeDiff::DELETE, 0);
+            std::get<1>(rec.data) = src_size;
+            changes.push_back(rec);
+            return 0;
+        }
+
+        /*
+         * best[i] = length of the LCS of src and dest ending at and including
+         *     dest[i - 1]. best[0] is always zero.
+         *
+         * best[i] is always in range best[i-1] ... best[i-1] + 1
+         */
+        best = (size_t *)calloc(dest_size + 1, sizeof(size_t));
+
+        /*
+         * choice[i] = position in src such that src[choice[i]] = dest[i] and
+         *     the length of LCS is maximal when choosing that combination.
+         */
+        choice = (size_t *)calloc(dest_size + 1, sizeof(size_t));
+
+        prefix_max = 0;
+        for (size_t src_i = 0; src_i < src_size; src_i++) {
+            for (size_t dest_i = 0; dest_i < dest_size; dest_i++) {
+                if (src_data[src_i] == dest_data[dest_i]) {
+                    best[dest_i] = prefix_max + 1;
+                    choice[dest_i] = src_i;
+                }
+
+                prefix_max = best[dest_i];
+            }
+        }
+
+        INFO("Longest common subsequence is %zu bytes long.\n", prefix_max);
+    } catch (...) {
+        ERROR("Likely out of memory.\n");
+        r = -1;
+    }
+
+    if (best) {
+        free(best);
+    }
+
+    if (choice) {
+        free(choice);
+    }
+
+    return r;
 }
 
 int NativeDiff::from_files(const std::string &src, const std::string &dest) {
@@ -88,6 +165,9 @@ cleanup:
     return r;
 }
 
-std::vector<std::byte> NativeDiff::binary_representation() {}
-int NativeDiff::from_binary_representation(const std::vector<std::byte> &data) {}
-std::vector<std::byte> NativeDiff::apply(const std::vector<std::byte> &data) {}
+std::vector<std::byte> NativeDiff::binary_representation() {
+}
+int NativeDiff::from_binary_representation(const std::vector<std::byte> &data) {
+}
+std::vector<std::byte> NativeDiff::apply(const std::vector<std::byte> &data) {
+}

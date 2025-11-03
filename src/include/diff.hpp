@@ -1,7 +1,7 @@
 #pragma once
-
 #include <cstddef>
 #include <string>
+#include <variant>
 #include <vector>
 
 class Diff {
@@ -38,13 +38,15 @@ private:
     class Record {
     public:
         RecordType type;
-        uint64_t   start;
-        uint64_t   len;
+        uint64_t   pos; /* Location in the source data. */
 
-        /* If type is DELETE, data will be empty */
-        std::vector<std::byte> data;
+        /* If type is DELETE, data will be empty, and len will contain the length. */
+        std::variant<std::vector<std::byte>, size_t> data;
+
+        Record(RecordType type, uint64_t pos);
     };
 
+private:
     std::vector<Record> changes;
 
     /*
