@@ -23,9 +23,9 @@ public:
     virtual int from_binary_representation(const std::vector<std::byte> &data) = 0;
 
     /*
-     * Apply this patch to the data. Returns empty vector on error.
+     * Apply this patch to the given file. Returns 0 on success.
      */
-    virtual std::vector<std::byte> apply(const std::vector<std::byte> &data) = 0;
+    virtual int apply(const std::string &file) = 0;
 };
 
 /*

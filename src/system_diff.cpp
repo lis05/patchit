@@ -36,7 +36,7 @@ static int invoke_tool(const char *tool, const char *command, int ec1, int ec2) 
 static const char *const COMMAND_XXD = "xxd -c1 -ps %s > %s";
 static const char *const COMMAND_XXD_REVERSE = "xxd -r -c1 -ps %s > %s";
 static const char *const COMMAND_DIFF = "diff %s %s > %s";
-static const char *const COMMAND_PATCH = "patch %s %s";
+static const char *const COMMAND_PATCH = "patch -f -s %s %s";
 
 static const char *format(const char *format, ...) {
     va_list list;
@@ -133,9 +133,19 @@ cleanup:
 }
 
 std::vector<std::byte> SystemDiff::binary_representation() {
-	
+	std::vector<std::byte> repr(len);
+	for (size_t i = 0; i < len; i++) {
+		repr[i] = data[i];
+	}
+	return Config::get()->compressor->compress(repr);
 }
+
+// TODO: better error handling
 int SystemDiff::from_binary_representation(const std::vector<std::byte> &data) {
+	this->data = Config::get()->compressor->decompress(data);
+	return data.empty() ? !this->data.empty() : this->data.empty();
 }
-std::vector<std::byte> SystemDiff::apply(const std::vector<std::byte> &data) {
+
+int SystemDiff::apply(const std::string &file) {
+	ASSERT(data != nullptr);
 }
