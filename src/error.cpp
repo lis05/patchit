@@ -5,7 +5,7 @@
 
 bool print_message(MessageLevel level, int line, const char *file,
                    const char *format, ...) {
-    bool        do_print = (int)level <= Config::get().verbosity;
+    bool        do_print = (int)level <= Config::get()->verbosity;
     va_list     args;
     const char *title;
 

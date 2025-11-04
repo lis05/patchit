@@ -133,6 +133,7 @@ cleanup:
 }
 
 std::vector<std::byte> SystemDiff::binary_representation() {
+	
 }
 int SystemDiff::from_binary_representation(const std::vector<std::byte> &data) {
 }

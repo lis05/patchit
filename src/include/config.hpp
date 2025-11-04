@@ -1,6 +1,9 @@
 #pragma once
 
 #include <string>
+#include <memory>
+
+class Compressor;
 
 class Config {
 public:
@@ -9,9 +12,11 @@ public:
 
     int verbosity;
 
+	std::shared_ptr<Compressor> compressor;
+
 private:
     Config();
 
 public:
-    static Config& get();
+    static std::shared_ptr<Config> get();
 };

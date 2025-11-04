@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <vector>
+#include <memory>
 
 class Compressor {
 public:
@@ -22,10 +23,10 @@ public:
  */
 class PlainCompressor : public Compressor {
 private:
-    PlainCompressor();
+    PlainCompressor() = default;
 
 public:
-    static PlainCompressor &get();
+    static std::shared_ptr<PlainCompressor> get();
 
     std::vector<std::byte> compress(const std::vector<std::byte> &data) override;
     std::vector<std::byte> decompress(const std::vector<std::byte> &data) override;

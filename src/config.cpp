@@ -1,4 +1,5 @@
 #include <config.hpp>
+#include <compressor.hpp>
 
 Config::Config() {
     this->verbosity = 0;
@@ -16,12 +17,14 @@ Config::Config() {
     this->compatibility_version = (uint64_t)-1;  // incompatible
     this->version += ".incompatible";
 #endif
+
+	this->compressor = PlainCompressor::get();
 }
 
-Config &Config::get() {
-    static Config *instance = nullptr;
+std::shared_ptr<Config> Config::get() {
+    static std::shared_ptr<Config> instance;
     if (!instance) {
-        instance = new Config();
+        instance.reset(new Config());
     }
-    return *instance;
+    return instance;
 }

@@ -40,8 +40,8 @@ static void print_help() {
 }
 
 static void print_version() {
-    const std::string &version = Config::get().version;
-    uint64_t           compatibility_version = Config::get().compatibility_version;
+    const std::string &version = Config::get()->version;
+    uint64_t           compatibility_version = Config::get()->compatibility_version;
 
     printf("Version: %s\n", version.c_str());
 
@@ -69,10 +69,10 @@ int main(int argc, char **argv) {
             print_version();
             return 0;
         case 'V':
-            Config::get().verbosity++;
+            Config::get()->verbosity++;
             break;
         case 'D':
-            Config::get().verbosity = 10;
+            Config::get()->verbosity = 10;
             break;
         case '?':
             if (optopt) {
