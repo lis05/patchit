@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include <memory>
+#include <string>
 
 class Compressor;
 
@@ -12,7 +12,7 @@ public:
 
     int verbosity;
 
-	std::shared_ptr<Compressor> compressor;
+    std::shared_ptr<Compressor> compressor;
 
 private:
     Config();

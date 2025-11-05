@@ -1,5 +1,6 @@
 #include <unistd.h>
 
+#include <compressor.hpp>
 #include <config.hpp>
 #include <cstdarg>
 #include <cstdio>
@@ -7,19 +8,9 @@
 #include <cstring>
 #include <diff.hpp>
 #include <error.hpp>
+#include <util.hpp>
 #include <utility>
 #include <vector>
-
-SystemDiff::SystemDiff() {
-    len = 0;
-    data = nullptr;
-}
-
-SystemDiff::~SystemDiff() {
-    if (data != nullptr) {
-        free(data);
-    }
-}
 
 static int invoke_tool(const char *tool, const char *command, int ec1, int ec2) {
     INFO("Running `%s`\n", command);
@@ -53,8 +44,8 @@ int SystemDiff::from_files(const std::string &src, const std::string &dest) {
     INFO("Constructing SystemDiff from files: %s and %s\n", src.c_str(),
          dest.c_str());
 
-    if (data) {
-        free(data);
+    if (!data.empty()) {
+        data.clear();
     }
 
     char *src_temp = (char *)strdup("/tmp/.patchit.src.XXXXXX");
@@ -67,17 +58,17 @@ int SystemDiff::from_files(const std::string &src, const std::string &dest) {
           diff_temp);
 
     if ((fd = mkstemp(src_temp)) == -1 || close(fd)) {
-        ERROR("Failed to make a unique temprorary file for %s\n", src.c_str());
+        ERROR("Failed to make a unique temporary file for %s\n", src.c_str());
         goto cleanup;
     }
 
     if ((fd = mkstemp(dest_temp)) == -1 || close(fd)) {
-        ERROR("Failed to make a unique temprorary file for %s\n", dest.c_str());
+        ERROR("Failed to make a unique temporary file for %s\n", dest.c_str());
         goto cleanup;
     }
 
     if ((fd = mkstemp(diff_temp)) == -1 || close(fd)) {
-        ERROR("Failed to make a unique temprorary file for future diff.\n");
+        ERROR("Failed to make a unique temporary file for future diff.\n");
         goto cleanup;
     }
 
@@ -100,27 +91,29 @@ int SystemDiff::from_files(const std::string &src, const std::string &dest) {
         goto cleanup;
     }
 
-    len = (size_t)pos;
-    INFO("Diff has size of %zu bytes.\n", len);
-    if (!(data = (std::byte *)malloc(this->len))) {
-        ERROR("Out of memory: %zu bytes.\n", len);
+    try {
+        data.resize(pos);
+    } catch (...) {
+        ERROR("Out of memory: %zu bytes.\n", (size_t)pos);
         goto cleanup;
     }
 
-    if (std::fread(data, len, sizeof(std::byte), file) != 1) {
+    if ((std::fread(data.data(), data.size(), sizeof(std::byte), file) != 1 &&
+         std::ferror(file)) ||
+        std::fclose(file)) {
         ERROR("Failed to read the diff: %s\n", strerror(errno));
         goto cleanup;
     }
 
+    file = NULL;
     r = 0;
 
 cleanup:
     if (file) {
         std::fclose(file);
     }
-    if (r && data) {
-        free(data);
-        data = nullptr;
+    if (r) {
+        data.clear();
     }
     unlink(src_temp);
     unlink(dest_temp);
@@ -129,23 +122,72 @@ cleanup:
     free(dest_temp);
     free(diff_temp);
 
+    MSG("Created a diff (%s -> %s): %s.\n", src.c_str(), dest.c_str(),
+        shorten_size(data.size()).c_str());
     return r;
 }
 
 std::vector<std::byte> SystemDiff::binary_representation() {
-	std::vector<std::byte> repr(len);
-	for (size_t i = 0; i < len; i++) {
-		repr[i] = data[i];
-	}
-	return Config::get()->compressor->compress(repr);
+    return Config::get()->compressor->compress(data);
 }
 
 // TODO: better error handling
 int SystemDiff::from_binary_representation(const std::vector<std::byte> &data) {
-	this->data = Config::get()->compressor->decompress(data);
-	return data.empty() ? !this->data.empty() : this->data.empty();
+    this->data = Config::get()->compressor->decompress(data);
+    return data.empty() ? !this->data.empty() : this->data.empty();
 }
 
-int SystemDiff::apply(const std::string &file) {
-	ASSERT(data != nullptr);
+int SystemDiff::apply(const std::string &dest) {
+    int r = -1;
+
+    INFO("Applying SystemDiff to %s\n", dest.c_str());
+    if (data.empty()) {
+        WARN("Empty diff.\n");
+    }
+
+    char *diff_temp = (char *)strdup("/tmp/.patchit.diff.XXXXXX");
+    char *file_temp = (char *)strdup("/tmp/.patchit.file.XXXXXX");
+    int   fd;
+    FILE *file = NULL;
+
+    if ((fd = mkstemp(diff_temp)) == -1 || close(fd)) {
+        ERROR("Failed to make a unique temporary file for diff: %s\n",
+              strerror(errno));
+        goto cleanup;
+    }
+
+    if ((fd = mkstemp(file_temp)) == -1 || close(fd)) {
+        ERROR("Failed to make a unique temporary file for %s: %s\n", dest.c_str(),
+              strerror(errno));
+        goto cleanup;
+    }
+
+    DEBUG("diff_temp: %s, file_temp: %s\n", diff_temp, file_temp);
+
+    if (!(file = std::fopen(diff_temp, "w")) ||
+        (std::fwrite(data.data(), data.size(), 1, file) != 1 && std::ferror(file)) ||
+        std::fclose(file)) {
+        ERROR("Failed to write the diff file: %s\n", strerror(errno));
+        goto cleanup;
+    }
+    file = NULL;
+
+    if (invoke_tool("xxd", format(COMMAND_XXD, dest.c_str(), file_temp), 0, 0) ||
+        invoke_tool("patch", format(COMMAND_PATCH, file_temp, diff_temp), 0, 0) ||
+        invoke_tool("xxd", format(COMMAND_XXD_REVERSE, file_temp, dest.c_str()), 0,
+                    0)) {
+        ERROR("Failed to apply the diff.\n");
+        goto cleanup;
+    }
+
+    r = 0;
+
+cleanup:
+    if (file)
+        std::fclose(file);
+    unlink(file_temp);
+    unlink(diff_temp);
+
+    MSG("Applied diff to %s\n", dest.c_str());
+    return r;
 }

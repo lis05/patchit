@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstddef>
-#include <vector>
 #include <memory>
+#include <vector>
 
 class Compressor {
 public:

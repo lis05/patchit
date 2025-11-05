@@ -1,5 +1,5 @@
-#include <config.hpp>
 #include <compressor.hpp>
+#include <config.hpp>
 
 Config::Config() {
     this->verbosity = 0;
@@ -18,7 +18,7 @@ Config::Config() {
     this->version += ".incompatible";
 #endif
 
-	this->compressor = PlainCompressor::get();
+    this->compressor = PlainCompressor::get();
 }
 
 std::shared_ptr<Config> Config::get() {
