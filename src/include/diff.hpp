@@ -3,9 +3,14 @@
 #include <string>
 #include <variant>
 #include <vector>
+#include <memory>
 
 class Diff {
 public:
+	enum DiffSignature: uint8_t {
+		SYSTEM_DIFF,
+	} signature;
+
     /*
      * Construct the diff from the given files.
      * */
@@ -26,6 +31,8 @@ public:
      * Apply this patch to the given file. Returns 0 on success.
      */
     virtual int apply(const std::string &file) = 0;
+
+	static std::shared_ptr<Diff> from_signature(uint8_t signature);
 };
 
 /*
@@ -36,6 +43,7 @@ private:
     std::vector<std::byte> data;
 
 public:
+	SystemDiff();
     int from_files(const std::string &src, const std::string &dest) override;
     std::vector<std::byte> binary_representation() override;
     int from_binary_representation(const std::vector<std::byte> &data) override;

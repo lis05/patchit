@@ -1,0 +1,4 @@
+build
+obj
+src/**/.cpp.swp
+src/**/.hpp.swp

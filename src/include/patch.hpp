@@ -3,8 +3,8 @@
 #include <memory>
 #include <string>
 #include <vector>
-
-class Compressor;
+#include <diff.hpp>
+#include <compressor.hpp>
 
 class Instruction {
 protected:
@@ -25,7 +25,7 @@ public:
      * Reconstruct the instruction from its given binary representation.
      * Returns 0 on success.
      */
-    virtual int from_binary_representation(const std::vector<std::byte> &data);
+    virtual int from_binary_representation(const std::vector<std::byte> &data) = 0;
 
     /*
      * Select the desired Compressor to use.
@@ -68,21 +68,16 @@ public:
     int from_binary_representation(const std::vector<std::byte> &data) override;
 };
 
-class Diff;
-
 class EntityModifyInstruction : public Instruction {
 private:
-    bool is_whole_file_included;
-    bool recreate_target_if_not_exists;
     bool create_empty_file_if_not_exists;
 
-    std::unique_ptr<Diff> diff;
+    std::string           target;
+    std::shared_ptr<Diff> diff;
 
 public:
-    EntityModifyInstruction(bool                  is_whole_file_included,
-                            bool                  recreate_target_if_not_exists,
-                            bool                  create_empty_file_if_not_exists,
-                            std::unique_ptr<Diff> diff);
+    EntityModifyInstruction(bool create_empty_file_if_not_exists, std::string target,
+                            std::shared_ptr<Diff> diff);
 
     int                    apply() override;
     std::vector<std::byte> binary_representation() override;
@@ -114,21 +109,11 @@ private:
      * Compatibility version of the source code for which this patch was created.
      * Used to check compatibility.
      */
-    uint64_t compatibility_version;
+    static const uint64_t compatibility_version = 0;
 
-    std::vector<std::unique_ptr<Instruction>> instructions;
+    std::vector<std::shared_ptr<Instruction>> instructions;
 
 public:
-    /*
-     * Create an empty patch.
-     */
-    Patch(uint64_t compatibility_version);
-
-    /*
-     * Reconstruct a patch based on the provided file.
-     */
-    Patch(const std::string &filepath);
-
     /*
      * Apply this patch. Returns 0 on success.
      */
@@ -137,5 +122,8 @@ public:
     /*
      * Append the given instruction to the end of the instructions list.
      */
-    void append(std::unique_ptr<Instruction> instruction);
+    void append(std::shared_ptr<Instruction> instruction);
+
+	int write_to_file(const std::string &file);
+	int load_from_file(const std::string &file);
 };

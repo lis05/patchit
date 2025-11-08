@@ -38,6 +38,10 @@ static const char *format(const char *format, ...) {
     return buf;
 }
 
+SystemDiff::SystemDiff() {
+	signature = Diff::SYSTEM_DIFF;
+}
+
 int SystemDiff::from_files(const std::string &src, const std::string &dest) {
     int r = -1;
 
@@ -52,7 +56,6 @@ int SystemDiff::from_files(const std::string &src, const std::string &dest) {
     char *dest_temp = (char *)strdup("/tmp/.patchit.dest.XXXXXX");
     char *diff_temp = (char *)strdup("/tmp/.patchit.diff.XXXXXX");
     int   fd;
-    FILE *file = nullptr;
 
     DEBUG("src_temp: %s, dest_temp: %s, diff_temp: %s\n", src_temp, dest_temp,
           diff_temp);
@@ -83,35 +86,13 @@ int SystemDiff::from_files(const std::string &src, const std::string &dest) {
         goto cleanup;
     }
 
-    long pos;
+	if (!open_and_read_entire_file(diff_temp, data)) {
+		goto cleanup;
+	}
 
-    if (!(file = std::fopen(diff_temp, "r")) || std::fseek(file, 0, SEEK_END) ||
-        (pos = std::ftell(file)) == -1 || std::fseek(file, 0, SEEK_SET)) {
-        ERROR("Failed to read the diff: %s\n", strerror(errno));
-        goto cleanup;
-    }
-
-    try {
-        data.resize(pos);
-    } catch (...) {
-        ERROR("Out of memory: %zu bytes.\n", (size_t)pos);
-        goto cleanup;
-    }
-
-    if ((std::fread(data.data(), data.size(), sizeof(std::byte), file) != 1 &&
-         std::ferror(file)) ||
-        std::fclose(file)) {
-        ERROR("Failed to read the diff: %s\n", strerror(errno));
-        goto cleanup;
-    }
-
-    file = NULL;
     r = 0;
 
 cleanup:
-    if (file) {
-        std::fclose(file);
-    }
     if (r) {
         data.clear();
     }
