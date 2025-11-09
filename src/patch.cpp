@@ -1,23 +1,25 @@
 #include <patch.hpp>
 #include <util.hpp>
+#include <error.hpp>
+#include <cstring>
 
 static const char *const SIGNATURE = "__PATCHIT__";
 
 std::shared_ptr<Instruction> Instruction::from_signature(uint8_t signature) {
 	std::shared_ptr<Instruction> res;
 	switch (signature) {
-	case Instruction::ENTITY_MOVE:
-		res.reset(new EntityMoveInstruction());
-		break;
-	case Instruction::ENTITY_DELETE:
-		res.reset(new EntityDeleteInstruction());
-		break;
+	//case Instruction::ENTITY_MOVE:
+	//	res.reset(new EntityMoveInstruction());
+	//	break;
+	//case Instruction::ENTITY_DELETE:
+	//	res.reset(new EntityDeleteInstruction());
+	//	break;
 	case Instruction::ENTITY_MODIFY:
 		res.reset(new EntityModifyInstruction());
 		break;
-	case Instruction::ENTITY_CHANGE_PERMISSIONS:
-		res.reset(new EntityChangePermissionsInstruction());
-		break;
+	//case Instruction::ENTITY_CHANGE_PERMISSIONS:
+	//	res.reset(new EntityChangePermissionsInstruction());
+	//	break;
 	}
 
 	return res;
@@ -35,7 +37,7 @@ int Patch::apply() {
 }
 
 void Patch::append(std::shared_ptr<Instruction> instruction) {
-	this->instructions->push_back(instruction);
+	this->instructions.push_back(instruction);
 }
 
 /*
@@ -66,7 +68,7 @@ static int restore_uint64_t(std::vector<std::byte>::iterator &it, const std::vec
 	value = 0;
 
 	for (int i = 0; i < 8; i++) {
-		value <<= 8;
+		value <<= 8;
 		value &= (uint64_t)*it;
 		it++;
 	}
@@ -85,7 +87,7 @@ int Patch::write_to_file(const std::string &file) {
 	store_uint64_t(instructions.size(), data);
 
 	for (auto i: instructions) {
-		const std::vector<std::byte> repr = i->binary_reprezentation();
+		const std::vector<std::byte> repr = i->binary_representation();
 		store_uint64_t(repr.size(), data);
 		data.push_back((std::byte)i->signature);
 		for (std::byte b: repr) {
@@ -111,7 +113,7 @@ int Patch::load_from_file(const std::string &file) {
 	}
 	it += strlen(SIGNATURE);
 
-	if (it == data.end() || *it != 0) {
+	if (it == data.end() || *it != std::byte{0}) {
 		ERROR("Failed to load patch %s: invalid signature separator.\n", file.c_str());
 		return -1;
 	}
@@ -156,7 +158,7 @@ int Patch::load_from_file(const std::string &file) {
 			it++;
 		}
 
-		if (instruction->from_binary_reprezentation(repr)) {
+		if (instruction->from_binary_representation(repr)) {
 			ERROR("Failed to load patch %s: corrupted instruction.\n", file.c_str());
 			return -1;
 		}

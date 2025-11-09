@@ -90,7 +90,8 @@ int main(int argc, char **argv) {
 
             for (auto &[name, func] : command_list) {
                 if (!strcmp(command, name)) {
-                    return func(argc - optind, argv + optind);
+					argv[0] = strdup(command); // leaks memory but its ok
+                    return func(argc - optind + 1, argv + optind - 1);
                 }
             }
 

@@ -70,6 +70,8 @@ std::vector<std::byte> EntityModifyInstruction::binary_representation() {
 	}
 	data.push_back(std::byte{0});
 
+	data.push_back((std::byte)this->create_empty_file_if_not_exists);
+
 	for (std::byte byte: diff_data) {
 		data.push_back(byte);
 	}
@@ -96,8 +98,15 @@ int EntityModifyInstruction::from_binary_representation(
 
 	target = std::string((char*)(data.data()) + 1);
 
+	if (data.size() < target.size() + 2) {
+		ERROR("Invalid diff: no flags.\n");
+		return -1;
+	}
+
+	this->create_empty_file_if_not_exists = (bool)data[target.size() + 1];
+
 	std::vector<std::byte> data_copy = data;
-	data_copy.erase(data_copy.begin(), data_copy.begin() + target.size() + 2);
+	data_copy.erase(data_copy.begin(), data_copy.begin() + target.size() + 3);
 
 	return diff->from_binary_representation(data);
 }

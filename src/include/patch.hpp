@@ -55,6 +55,7 @@ public:
                           bool               create_empty_directory_if_not_exists,
                           bool               override_if_already_exists,
                           const std::string &move_from, const std::string &move_to);
+	EntityMoveInstruction() = default;
 
     int                    apply() override;
     std::vector<std::byte> binary_representation() override;
@@ -70,6 +71,7 @@ private:
 public:
     EntityDeleteInstruction(bool        delete_recursively_if_directory,
                             std::string target);
+	EntityDeleteInstruction() = default;
 
     int                    apply() override;
     std::vector<std::byte> binary_representation() override;
@@ -86,6 +88,7 @@ private:
 public:
     EntityModifyInstruction(bool create_empty_file_if_not_exists, std::string target,
                             std::shared_ptr<Diff> diff);
+	EntityModifyInstruction() = default;
 
     int                    apply() override;
     std::vector<std::byte> binary_representation() override;
@@ -105,6 +108,7 @@ public:
                                        bool     create_empty_directory_if_not_exists,
                                        bool     apply_recursively_if_directory,
                                        uint64_t flags);
+	EntityChangePermissionsInstruction() = default;
 
     int                    apply() override;
     std::vector<std::byte> binary_representation() override;
