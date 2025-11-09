@@ -11,6 +11,7 @@
 
 EntityModifyInstruction::EntityModifyInstruction(
     bool create_empty_file_if_not_exists, std::string target, std::shared_ptr<Diff> diff) {
+	this->signature = ENTITY_MODIFY;
     this->create_empty_file_if_not_exists = create_empty_file_if_not_exists;
 	this->target = target;
     this->diff = diff;

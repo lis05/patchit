@@ -11,6 +11,12 @@ protected:
     std::shared_ptr<Compressor> compressor;
 
 public:
+	enum InstructionSignature: uint8_t {
+		ENTITY_MOVE,
+		ENTITY_DELETE,
+		ENTITY_MODIFY,
+		ENTITY_CHANGE_PERMISSIONS
+	} signature;
     /*
      * Apply this instruction. Returns 0 on success.
      */
@@ -31,6 +37,8 @@ public:
      * Select the desired Compressor to use.
      */
     void set_compressor(std::shared_ptr<Compressor> compressor);
+
+	static std::shared_ptr<Instruction> from_signature(uint8_t signature);
 };
 
 class EntityMoveInstruction : public Instruction {
