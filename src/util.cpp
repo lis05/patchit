@@ -55,7 +55,7 @@ int read_entire_file(const char *filename, FILE *fd,
 int open_and_read_entire_file(const char *filename, std::vector<std::byte> &buffer) {
     FILE *fd = nullptr;
 
-    if (!std::fopen(filename, "r")) {
+    if (!(fd = std::fopen(filename, "r"))) {
         ERROR("Failed to open %s: %s\n", filename, strerror(errno));
         return -1;
     }
@@ -84,7 +84,7 @@ int open_and_write_entire_file(const char                   *filename,
                                const std::vector<std::byte> &buffer) {
     FILE *fd = nullptr;
 
-    if (!std::fopen(filename, "w")) {
+    if (!(fd = std::fopen(filename, "w"))) {
         ERROR("Failed to open %s: %s\n", filename, strerror(errno));
         return -1;
     }

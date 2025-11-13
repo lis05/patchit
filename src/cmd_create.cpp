@@ -1,24 +1,24 @@
-#include <commands.hpp>
-#include <diff.hpp>
-#include <patch.hpp>
-#include <cstdio>
-#include <cstring>
-#include <error.hpp>
-#include <utility>
 #include <getopt.h>
 
-static struct option const long_opts[] = {
-	{"help", 0, nullptr, 'h'},
-	{"modify", 0, nullptr, 'M'},
-	{"compressor", 0, nullptr, 'c'},
-	{"diff", 0, nullptr, 'd'},
-	{nullptr, 0, nullptr, 0}
-};
+#include <commands.hpp>
+#include <config.hpp>
+#include <cstdio>
+#include <cstring>
+#include <diff.hpp>
+#include <error.hpp>
+#include <patch.hpp>
+#include <utility>
 
-static const char *const short_opts = "-hMc:e";
+static struct option const long_opts[] = {{"help", 0, nullptr, 'h'},
+                                          {"modify", 0, nullptr, 'M'},
+                                          {"compressor", 0, nullptr, 'c'},
+                                          {"diff", 0, nullptr, 'd'},
+                                          {nullptr, 0, nullptr, 0}};
+
+static const char *const short_opts = "-hMc:d:e";
 
 static void print_help() {
-	// clang-format off
+    // clang-format off
 	printf(
 		"Usage: create PATCHFILE INSTRUCTIONS\n"
 		"\n"
@@ -38,53 +38,141 @@ static void print_help() {
 		"  -c, --compressor COMP      Use the selected compression method.\n"
 		"                                 Supported compressors: default\n"
 	);
-	// clang-format on
+    // clang-format on
+}
+
+static void handle_unknown_option(char **argv) {
+    if (optopt) {
+        CRIT("Unrecognized option: -%c\n", optopt);
+    } else if (argv[optind - 1]) {
+        CRIT("Unrecognized option (possibly '%s')\n", argv[optind - 1]);
+    } else {
+        CRIT("Unrecognized option.\n");
+    }
+}
+
+int do_create_entity_modification(int argc, char **argv, Patch &p) {
+    DEBUG("Making entity modification instruction.\n");
+    char short_option;
+
+    std::shared_ptr<Instruction> ins;
+    std::shared_ptr<Diff>        diff = std::make_shared<SystemDiff>();
+    bool                         create_empty_file_if_not_exists;
+    char                        *from_file = NULL, *to_file = NULL;
+    Config::get()->compressor = PlainCompressor::get();
+
+    while ((short_option = getopt_long(argc, argv, short_opts, long_opts, 0)) !=
+           -1) {
+        switch (short_option) {
+        case 'e':
+            DEBUG("create_empty_file_if_not_exists=true\n");
+            create_empty_file_if_not_exists = true;
+            break;
+        case 'd':
+            DEBUG("diff=%s\n", optarg);
+            if (!strcmp(optarg, "default")) {
+                diff.reset(new SystemDiff());
+            } else {
+                ERROR("Unrecognized diff selected: %s\n", optarg);
+                return -1;
+            }
+			break;
+        case 'c':
+            DEBUG("compressor=%s\n", optarg);
+            if (!strcmp(optarg, "default")) {
+                Config::get()->compressor = PlainCompressor::get();
+            } else {
+                ERROR("Unrecognized compressor selected: %s\n", optarg);
+                return -1;
+            }
+			break;
+        case '?':
+            handle_unknown_option(argv);
+            return -1;
+        case 1:
+            if (!from_file) {
+                DEBUG("from_file=%s\n", argv[optind - 1]);
+                from_file = argv[optind - 1];
+            } else if (!to_file) {
+                DEBUG("to_file=%s\n", argv[optind - 1]);
+                to_file = argv[optind - 1];
+                goto create;
+            }
+            break;
+        default:
+            CRIT("Failed to parse options.\n");
+            return -1;
+        }
+    }
+
+    ERROR("Please specify source and destination files.\n");
+    return -1;
+
+create:
+    if (diff->from_files(from_file, to_file)) {
+        ERROR(
+            "Failed to create an entity modification instruction: diff creation has "
+            "failed.\n");
+        return -1;
+    }
+
+    ins.reset(new EntityModifyInstruction(create_empty_file_if_not_exists, from_file,
+                                          diff));
+    p.append(ins);
+    INFO("Successfully created new entity modify instruction: %s -> %s.\n",
+         from_file, to_file);
+    return 0;
 }
 
 int do_command_create(int argc, char **argv) {
-	for (int i = 0; i < argc; i++) {
-		DEBUG("Got argv[i]: %s\n", argv[i]);
-	}
+    for (int i = 0; i < argc; i++) {
+        DEBUG("Got argv[i]: %s\n", argv[i]);
+    }
 
-	char short_option;
-	const char *patchfile = NULL;
+    int         r = -1;
+    char        short_option;
+    const char *patchfile = NULL;
 
-	Patch p;
+    Patch p;
 
-	optind = 1;
-	opterr = 0;
-	while ((short_option = getopt_long(argc, argv, short_opts, long_opts, 0)) !=
-		-1) {
-		DEBUG("Processing option -%c (%d)\n", short_option, (int)short_option);
+    optind = 1;
+    opterr = 0;
+    while ((short_option = getopt_long(argc, argv, short_opts, long_opts, 0)) !=
+           -1) {
+        DEBUG("Processing option -%c (%d)\n", short_option, (int)short_option);
 
-		switch (short_option) {
-		case 'h':
-			print_help();
-			return 0;
-		case '?':
-            if (optopt) {
-                CRIT("Unrecognized option: -%c\n", optopt);
-            } else if (argv[optind - 1]) {
-                CRIT("Unrecognized option (possibly '%s')\n", argv[optind - 1]);
-            } else {
-                CRIT("Unrecognized option.\n");
+        switch (short_option) {
+        case 'h':
+            print_help();
+            return 0;
+        case 'M':
+            if (!patchfile) {
+                ERROR("Patchfile was not specified.\n");
+                return -1;
             }
+
+            if ((r = do_create_entity_modification(argc, argv, p))) {
+                return r;
+            }
+            break;
+        case '?':
+            handle_unknown_option(argv);
+            return -1;
         case 1:
-            /*command = argv[optind - 1];
-            ASSERT(command);
-
-            DEBUG("Processing command %s\n", command);
-
-            for (auto &[name, func] : command_list) {
-                if (!strcmp(command, name)) {
-                    return func(argc - optind, argv + optind);
-                }
+            if (patchfile) {
+                ERROR("Patchfile already specified.\n");
+                return -1;
             }
-
-            CRIT("Unrecognized option: %s\n", command);*/
-			CRIT("");
+            INFO("Destination patchfile: %s\n", argv[optind - 1]);
+            patchfile = argv[optind - 1];
+            break;
         default:
-            CRIT("Failed parsing options.\n");
+            ERROR("Failed to parse options.\n");
+            break;
         }
-	}
+    }
+
+    r = p.write_to_file(patchfile);
+
+    return r;
 }
