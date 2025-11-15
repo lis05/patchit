@@ -10,6 +10,28 @@ enum MessageLevel {
     LEVEL_DEBUG = 3
 };
 
+#ifndef NO_COLORS
+
+#define KNRM  "\x1B[0m"
+#define KRED  "\x1B[31m"
+#define KGRN  "\x1B[32m"
+#define KYEL  "\x1B[33m"
+#define KMAG  "\x1B[35m"
+#define KCYN  "\x1B[36m"
+#define KWHT  "\x1B[37m"
+
+#else
+
+#define KNRM ""
+#define KRED ""
+#define KGRN ""
+#define KYEL ""
+#define KMAG ""
+#define KCYN ""
+#define KWTH ""
+
+#endif
+
 /*
  * Prints the message if the current verbosity level is high enough.
  * Returns whether the message was printed.

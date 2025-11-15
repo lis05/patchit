@@ -12,6 +12,8 @@ bool print_message(MessageLevel level, int line, const char *file,
     if (!do_print) {
         return false;
     }
+	const char *color = KNRM;
+	const char *clear = KNRM;
 
     va_start(args, format);
     switch (level) {
@@ -19,15 +21,19 @@ bool print_message(MessageLevel level, int line, const char *file,
         title = "CRITICAL ERROR";
         break;
     case LEVEL_ERROR:
+		color = KRED;
         title = "ERROR";
         break;
     case LEVEL_WARN:
+		color = KYEL;
         title = "WARNING";
         break;
     case LEVEL_INFO:
+		color = KCYN;
         title = "INFO";
         break;
     case LEVEL_DEBUG:
+		color = KGRN;
         title = "DEBUG";
         break;
     }
@@ -37,8 +43,10 @@ bool print_message(MessageLevel level, int line, const char *file,
         vfprintf(stdout, format, args);
         break;
     default:
+		fprintf(stderr, color);
         fprintf(stderr, "[%s | %s:%d]: ", title, file, line);
         vfprintf(stderr, format, args);
+		fprintf(stderr, clear);
         break;
     }
 
