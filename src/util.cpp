@@ -60,7 +60,7 @@ int open_and_read_entire_file(const char *filename, std::vector<std::byte> &buff
         return -1;
     }
 
-    if (!read_entire_file(filename, fd, buffer)) {
+    if (read_entire_file(filename, fd, buffer)) {
         std::fclose(fd);
         return -1;
     }
@@ -89,7 +89,7 @@ int open_and_write_entire_file(const char                   *filename,
         return -1;
     }
 
-    if (!write_entire_file(filename, fd, buffer)) {
+    if (write_entire_file(filename, fd, buffer)) {
         std::fclose(fd);
         return -1;
     }

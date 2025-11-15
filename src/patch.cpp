@@ -66,12 +66,14 @@ static int restore_uint64_t(std::vector<std::byte>::iterator &it, const std::vec
 		return -1;
 	}
 	value = 0;
+	it = it + 7;
 
 	for (int i = 0; i < 8; i++) {
 		value <<= 8;
-		value &= (uint64_t)*it;
-		it++;
+		value |= (uint64_t)*it;
+		it--;
 	}
+	it += 9;
 	return 0;
 }
 
@@ -100,12 +102,12 @@ int Patch::write_to_file(const std::string &file) {
 
 int Patch::load_from_file(const std::string &file) {
 	std::vector<std::byte> data;
-	std::vector<std::byte>::iterator it = data.begin();
 
 	if (open_and_read_entire_file(file.c_str(), data)) {
 		ERROR("Failed to load patch %s\n", file.c_str());
 		return -1;
 	}
+	std::vector<std::byte>::iterator it = data.begin();
 
 	if (data.size() < sizeof(SIGNATURE) || memcmp(data.data(), SIGNATURE, strlen(SIGNATURE))) {
 		ERROR("Failed to load patch %s: invalid signature.\n", file.c_str());
@@ -113,7 +115,7 @@ int Patch::load_from_file(const std::string &file) {
 	}
 	it += strlen(SIGNATURE);
 
-	if (it == data.end() || *it != std::byte{0}) {
+	if (it >= data.end() || *it != std::byte{0}) {
 		ERROR("Failed to load patch %s: invalid signature separator.\n", file.c_str());
 		return -1;
 	}
@@ -124,6 +126,7 @@ int Patch::load_from_file(const std::string &file) {
 		ERROR("Failed to load patch %s: invalid number of instructions.\n", file.c_str());
 		return -1;
 	}
+	DEBUG("count=%zu\n", count);
 
 	std::vector<std::byte> repr;
 	uint64_t len;
@@ -135,10 +138,11 @@ int Patch::load_from_file(const std::string &file) {
 		}
 
 		std::shared_ptr<Instruction> instruction;
-		if (it == data.end() || !Instruction::from_signature((uint8_t)*it)) {
+		if (it == data.end() || !(instruction = Instruction::from_signature((uint8_t)*it))) {
 			ERROR("Failed to load patch %s: invalid instruction signature.\n", file.c_str());
 			return -1;
 		}
+		it++;
 
 		repr.clear();
 		try {

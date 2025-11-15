@@ -39,7 +39,7 @@ static const char *format(const char *format, ...) {
 }
 
 SystemDiff::SystemDiff() {
-	signature = Diff::SYSTEM_DIFF;
+    signature = Diff::SYSTEM_DIFF;
 }
 
 int SystemDiff::from_files(const std::string &src, const std::string &dest) {
@@ -86,9 +86,9 @@ int SystemDiff::from_files(const std::string &src, const std::string &dest) {
         goto cleanup;
     }
 
-	if (!open_and_read_entire_file(diff_temp, data)) {
-		goto cleanup;
-	}
+    if (open_and_read_entire_file(diff_temp, data)) {
+        goto cleanup;
+    }
 
     r = 0;
 
@@ -166,8 +166,10 @@ int SystemDiff::apply(const std::string &dest) {
 cleanup:
     if (file)
         std::fclose(file);
-    unlink(file_temp);
-    unlink(diff_temp);
+    if (!r) {  // for debug purposes
+        unlink(file_temp);
+        unlink(diff_temp);
+    }
 
     MSG("Applied diff to %s\n", dest.c_str());
     return r;

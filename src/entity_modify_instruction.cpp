@@ -81,8 +81,13 @@ std::vector<std::byte> EntityModifyInstruction::binary_representation() {
 
 int EntityModifyInstruction::from_binary_representation(
     const std::vector<std::byte> &data) {
-	size_t ptr;
-	uint8_t signature = (uint8_t)data[ptr++];
+
+	if (data.empty()) {
+		WARN("Empty instruction.\n");
+		return 0;
+	}
+
+	uint8_t signature = (uint8_t)data[0];
 
 	diff = Diff::from_signature(signature);
 
@@ -91,23 +96,24 @@ int EntityModifyInstruction::from_binary_representation(
 		return -1;
 	}
 
-	if (std::find(data.begin(), data.end(), std::byte{0}) == data.end()) {
+	if (std::find(data.begin() + 1, data.end(), std::byte{0}) == data.end()) {
 		ERROR("Invalid diff target: no NULL byte.\n");
 		return -1;
 	}
 
 	target = std::string((char*)(data.data()) + 1);
+	INFO("Instruction's target: %s\n", target.c_str());
 
-	if (data.size() < target.size() + 2) {
+	if (data.size() < 1 + target.size() + 1) {
 		ERROR("Invalid diff: no flags.\n");
 		return -1;
 	}
 
-	this->create_empty_file_if_not_exists = (bool)data[target.size() + 1];
+	this->create_empty_file_if_not_exists = (bool)data[1 + target.size() + 1];
 
 	std::vector<std::byte> data_copy = data;
-	data_copy.erase(data_copy.begin(), data_copy.begin() + target.size() + 3);
+	data_copy.erase(data_copy.begin(), data_copy.begin() + 1 + target.size() + 2);
 
-	return diff->from_binary_representation(data);
+	return diff->from_binary_representation(data_copy);
 }
 

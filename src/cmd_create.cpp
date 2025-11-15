@@ -174,5 +174,11 @@ int do_command_create(int argc, char **argv) {
 
     r = p.write_to_file(patchfile);
 
+	if (!r) {
+		MSG("Created a patch successfully\n");
+	}
+	else {
+		MSG("Failed to create a patch (%d).\n", r);
+	}
     return r;
 }
