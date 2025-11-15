@@ -34,6 +34,11 @@ static void handle_unknown_option(char **argv) {
 }
 
 int do_command_apply(int argc, char **argv) {
+	INFO("Running apply command.\n");
+	for (int i = 0; i < argc; i++) {
+		DEBUG("argv[%d] = %s\n", i, argv[i]);
+	}
+
     int         r = -1;
     char        short_option;
     const char *patchfile = NULL;
@@ -45,7 +50,7 @@ int do_command_apply(int argc, char **argv) {
     opterr = 0;
     while ((short_option = getopt_long(argc, argv, short_opts, long_opts, 0)) !=
            -1) {
-        DEBUG("Processing option -%c (%d)\n", short_option, (int)short_option);
+        DEBUG("Processing short option '%c' (%d)\n", short_option, (int)short_option);
 
         switch (short_option) {
         case 'h':
@@ -54,18 +59,18 @@ int do_command_apply(int argc, char **argv) {
         case 1:
             if (!patchfile) {
                 patchfile = argv[optind - 1];
-                INFO("Patchfile: %s\n", argv[optind - 1]);
+                INFO("Patchfile specified: %s\n", patchfile);
                 break;
             } else if (!destpath) {
                 destpath = argv[optind - 1];
-                INFO("Destpath: %s\n", argv[optind - 1]);
+                INFO("Destpath specified: %s\n", destpath);
                 goto apply;
             }
         case '?':
             handle_unknown_option(argv);
             break;
         default:
-            CRIT("Failed to aprse options.\n");
+            CRIT("Failed to parse options.\n");
             return -1;
         }
     }
@@ -74,7 +79,6 @@ int do_command_apply(int argc, char **argv) {
 	return -1;
 
 apply:
-
 	if ((r = p.load_from_file(patchfile))) {
 		ERROR("Failed to apply the patch.\n");
 		return r;
@@ -90,12 +94,21 @@ apply:
 		ERROR("Failed to change current working directory to %s: %s\n", destpath, strerror(errno));
 		return -1;
 	}
+	INFO("Changed CWD to %s\n", destpath);
 
+	INFO("Applying the patch...\n");
 	r = p.apply();
 
 	if (chdir(oldwd)) {
 		ERROR("Failed chdir(%s): %s\n", oldwd, strerror(errno));
 		return -1;
+	}
+
+	if (!r) {
+		MSG("Applied the patch successfully.\n");
+	}
+	else {
+		ERROR("Failed to apply the patch. (%d)\n", r);
 	}
 
 	return r;

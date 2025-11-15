@@ -15,6 +15,7 @@ std::shared_ptr<Instruction> Instruction::from_signature(uint8_t signature) {
 	//	res.reset(new EntityDeleteInstruction());
 	//	break;
 	case Instruction::ENTITY_MODIFY:
+		INFO("Instruction signature recognized: ENTITY_MODIFY\n");
 		res.reset(new EntityModifyInstruction());
 		break;
 	//case Instruction::ENTITY_CHANGE_PERMISSIONS:
@@ -22,10 +23,14 @@ std::shared_ptr<Instruction> Instruction::from_signature(uint8_t signature) {
 	//	break;
 	}
 
+	if (!res) {
+		WARN("Unrecognized instruction signature: %d\n", (int)signature);
+	}
 	return res;
 }
 
 int Patch::apply() {
+	INFO("Applying patch...\n");
 	for (auto i: instructions) {
 		if (i->apply()) {
 			ERROR("Failed to apply patch.\n");
@@ -78,6 +83,7 @@ static int restore_uint64_t(std::vector<std::byte>::iterator &it, const std::vec
 }
 
 int Patch::write_to_file(const std::string &file) {
+	INFO("Writing patch to file: %s\n", file.c_str());
 	std::vector<std::byte> data;
 
 	for (char *ptr = (char*)SIGNATURE; *ptr != 0; ptr++) {
@@ -101,6 +107,7 @@ int Patch::write_to_file(const std::string &file) {
 }
 
 int Patch::load_from_file(const std::string &file) {
+	INFO("Loading patch from file: %s\n", file.c_str());
 	std::vector<std::byte> data;
 
 	if (open_and_read_entire_file(file.c_str(), data)) {
@@ -126,7 +133,7 @@ int Patch::load_from_file(const std::string &file) {
 		ERROR("Failed to load patch %s: invalid number of instructions.\n", file.c_str());
 		return -1;
 	}
-	DEBUG("count=%zu\n", count);
+	INFO("Patch contains %zu instructions.\n", count);
 
 	std::vector<std::byte> repr;
 	uint64_t len;
@@ -169,6 +176,6 @@ int Patch::load_from_file(const std::string &file) {
 
 		append(instruction);
 	}
-	INFO("Loaded %zu instructions.\n", instructions.size());
+	INFO("Loaded %zu instructions successfully.\n", instructions.size());
 	return 0;
 }

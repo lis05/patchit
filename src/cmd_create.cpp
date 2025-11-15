@@ -52,7 +52,10 @@ static void handle_unknown_option(char **argv) {
 }
 
 int do_create_entity_modification(int argc, char **argv, Patch &p) {
-    DEBUG("Making entity modification instruction.\n");
+    INFO("Handling entity modification instruction.\n");
+	for (int i = 0; i < argc; i++) {
+		DEBUG("argv[%d] = %s\n", i, argv[i]);
+	}
     char short_option;
 
     std::shared_ptr<Instruction> ins;
@@ -63,13 +66,14 @@ int do_create_entity_modification(int argc, char **argv, Patch &p) {
 
     while ((short_option = getopt_long(argc, argv, short_opts, long_opts, 0)) !=
            -1) {
+		DEBUG("Processing short option '%c' (%d)\n", short_option, (int)short_option);
         switch (short_option) {
         case 'e':
             DEBUG("create_empty_file_if_not_exists=true\n");
             create_empty_file_if_not_exists = true;
             break;
         case 'd':
-            DEBUG("diff=%s\n", optarg);
+			INFO("Selected diff: %s\n", optarg);
             if (!strcmp(optarg, "default")) {
                 diff.reset(new SystemDiff());
             } else {
@@ -78,7 +82,7 @@ int do_create_entity_modification(int argc, char **argv, Patch &p) {
             }
 			break;
         case 'c':
-            DEBUG("compressor=%s\n", optarg);
+            INFO("Selected compressor: %s\n", optarg);
             if (!strcmp(optarg, "default")) {
                 Config::get()->compressor = PlainCompressor::get();
             } else {
@@ -91,11 +95,11 @@ int do_create_entity_modification(int argc, char **argv, Patch &p) {
             return -1;
         case 1:
             if (!from_file) {
-                DEBUG("from_file=%s\n", argv[optind - 1]);
                 from_file = argv[optind - 1];
+				INFO("From file: %s\n", from_file);
             } else if (!to_file) {
-                DEBUG("to_file=%s\n", argv[optind - 1]);
                 to_file = argv[optind - 1];
+				INFO("To file: %s\n", to_file);
                 goto create;
             }
             break;
@@ -175,10 +179,10 @@ int do_command_create(int argc, char **argv) {
     r = p.write_to_file(patchfile);
 
 	if (!r) {
-		MSG("Created a patch successfully\n");
+		MSG("Created a patch successfully.\n");
 	}
 	else {
-		MSG("Failed to create a patch (%d).\n", r);
+		ERROR("Failed to create a patch (%d).\n", r);
 	}
     return r;
 }

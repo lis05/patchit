@@ -18,6 +18,7 @@ EntityModifyInstruction::EntityModifyInstruction(
 }
 
 int EntityModifyInstruction::apply() {
+	INFO("Applying EntityModifyInstruction.\n");
 	struct stat sb;
 	FILE *fd = NULL;
 
@@ -27,9 +28,10 @@ int EntityModifyInstruction::apply() {
 				ERROR("Failed to create %s: %s\n", target.c_str(), strerror(errno));
 				return -1;
 			}
+			INFO("Created empty file since %s did not exist.\n", target.c_str());
 			return 0;
 		}
-		ERROR("Failed to stat %s: %s\n", target.c_str(), strerror(errno));
+		ERROR("Failed to patch %s: %s\n", target.c_str(), strerror(errno));
 		return -1;
 	}
 
@@ -53,7 +55,7 @@ int EntityModifyInstruction::apply() {
 		return -1;
 	}
 
-	INFO("Applied modification to %s\n", target.c_str());
+	INFO("Applied modification successfully to %s\n", target.c_str());
 	return 0;
 }
 

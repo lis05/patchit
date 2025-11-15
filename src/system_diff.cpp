@@ -13,11 +13,11 @@
 #include <vector>
 
 static int invoke_tool(const char *tool, const char *command, int ec1, int ec2) {
-    INFO("Running `%s`\n", command);
+    INFO("Invoking command `%s`\n", command);
     int r = system(command);
     if (r == -1 || (WEXITSTATUS(r) != ec1 && WEXITSTATUS(r) != ec2)) {
         ERROR(
-            "Failed executing command `%s`, ec=%d, errno: %s. Is `%s` installed?\n",
+            "Failed to execute command `%s`, ec=%d, errno: %s. Is `%s` installed?\n",
             command, r, strerror(errno), tool);
         return -1;
     }
@@ -49,6 +49,7 @@ int SystemDiff::from_files(const std::string &src, const std::string &dest) {
          dest.c_str());
 
     if (!data.empty()) {
+        WARN("Diff data was not empty. Cleaning, but this is weird...\n");
         data.clear();
     }
 
@@ -64,19 +65,19 @@ int SystemDiff::from_files(const std::string &src, const std::string &dest) {
         ERROR("Failed to make a unique temporary file for %s\n", src.c_str());
         goto cleanup;
     }
+    INFO("%s will be temporarily written to %s\n", src.c_str(), src_temp);
 
     if ((fd = mkstemp(dest_temp)) == -1 || close(fd)) {
         ERROR("Failed to make a unique temporary file for %s\n", dest.c_str());
         goto cleanup;
     }
+    INFO("%s will be temporarily written to %s\n", dest.c_str(), dest_temp);
 
     if ((fd = mkstemp(diff_temp)) == -1 || close(fd)) {
         ERROR("Failed to make a unique temporary file for future diff.\n");
         goto cleanup;
     }
-
-    DEBUG("src_temp: %s, dest_temp: %s, diff_temp: %s\n", src_temp, dest_temp,
-          diff_temp);
+    INFO("SystemDiff will be temporarily written to %s\n", diff_temp);
 
     if (invoke_tool("xxd", format(COMMAND_XXD, src.c_str(), src_temp), 0, 0) ||
         invoke_tool("xxd", format(COMMAND_XXD, dest.c_str(), dest_temp), 0, 0) ||
@@ -96,15 +97,27 @@ cleanup:
     if (r) {
         data.clear();
     }
-    unlink(src_temp);
-    unlink(dest_temp);
-    unlink(diff_temp);
+    if (!r) {
+        unlink(src_temp);
+        unlink(dest_temp);
+        unlink(diff_temp);
+    } else {
+        MSG("To debug the issue, please check the following files:\n");
+        MSG("    %s - temporary source file data\n", src_temp);
+        MSG("    %s - temporary destination file data\n", dest_temp);
+        MSG("    %s - temporary diff data\n", diff_temp);
+    }
     free(src_temp);
     free(dest_temp);
     free(diff_temp);
 
-    MSG("Created a diff (%s -> %s): %s.\n", src.c_str(), dest.c_str(),
-        shorten_size(data.size()).c_str());
+    if (!r) {
+        MSG("Created a diff (%s -> %s): %s.\n", src.c_str(), dest.c_str(),
+            shorten_size(data.size()).c_str());
+    } else {
+        ERROR("Failed to create a diff from %s and %s.\n", src.c_str(),
+              dest.c_str());
+    }
     return r;
 }
 
@@ -136,19 +149,17 @@ int SystemDiff::apply(const std::string &dest) {
               strerror(errno));
         goto cleanup;
     }
+    INFO("SystemDiff will be temporarily written to %s\n", diff_temp);
 
     if ((fd = mkstemp(file_temp)) == -1 || close(fd)) {
         ERROR("Failed to make a unique temporary file for %s: %s\n", dest.c_str(),
               strerror(errno));
         goto cleanup;
     }
+    INFO("%s will be temporarily written to %s\n", dest.c_str(), file_temp);
 
-    DEBUG("diff_temp: %s, file_temp: %s\n", diff_temp, file_temp);
-
-    if (!(file = std::fopen(diff_temp, "w")) ||
-        (std::fwrite(data.data(), data.size(), 1, file) != 1 && std::ferror(file)) ||
-        std::fclose(file)) {
-        ERROR("Failed to write the diff file: %s\n", strerror(errno));
+    if (open_and_write_entire_file(diff_temp, data)) {
+        ERROR("Failed to write the diff file %s: %s\n", diff_temp, strerror(errno));
         goto cleanup;
     }
     file = NULL;
@@ -157,7 +168,7 @@ int SystemDiff::apply(const std::string &dest) {
         invoke_tool("patch", format(COMMAND_PATCH, file_temp, diff_temp), 0, 0) ||
         invoke_tool("xxd", format(COMMAND_XXD_REVERSE, file_temp, dest.c_str()), 0,
                     0)) {
-        ERROR("Failed to apply the diff.\n");
+        ERROR("Failed to execute the required commands.\n");
         goto cleanup;
     }
 
@@ -166,11 +177,19 @@ int SystemDiff::apply(const std::string &dest) {
 cleanup:
     if (file)
         std::fclose(file);
-    if (!r) {  // for debug purposes
+    if (!r) {
         unlink(file_temp);
         unlink(diff_temp);
+    } else {
+        MSG("To debug the issue, please check the following files:\n");
+        MSG("    %s - temporary SystemDiff data\n", diff_temp);
+        MSG("    %s - temporary destionation file data\n", file_temp);
     }
 
-    MSG("Applied diff to %s\n", dest.c_str());
+    if (!r) {
+        MSG("Applied diff to %s\n", dest.c_str());
+    } else {
+        ERROR("Failed to apply the diff to %s\n", dest.c_str());
+    }
     return r;
 }
