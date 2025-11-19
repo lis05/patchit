@@ -1,22 +1,22 @@
 #pragma once
+#include <compressor.hpp>
 #include <cstddef>
+#include <diff.hpp>
 #include <memory>
 #include <string>
 #include <vector>
-#include <diff.hpp>
-#include <compressor.hpp>
 
 class Instruction {
 protected:
     std::shared_ptr<Compressor> compressor;
 
 public:
-	enum InstructionSignature: uint8_t {
-		ENTITY_MOVE,
-		ENTITY_DELETE,
-		ENTITY_MODIFY,
-		ENTITY_CHANGE_PERMISSIONS
-	} signature;
+    enum InstructionSignature : uint8_t {
+        ENTITY_MOVE,
+        ENTITY_DELETE,
+        ENTITY_MODIFY,
+        ENTITY_CHANGE_PERMISSIONS
+    } signature;
     /*
      * Apply this instruction. Returns 0 on success.
      */
@@ -38,7 +38,7 @@ public:
      */
     void set_compressor(std::shared_ptr<Compressor> compressor);
 
-	static std::shared_ptr<Instruction> from_signature(uint8_t signature);
+    static std::shared_ptr<Instruction> from_signature(uint8_t signature);
 };
 
 class EntityMoveInstruction : public Instruction {
@@ -55,7 +55,7 @@ public:
                           bool               create_empty_directory_if_not_exists,
                           bool               override_if_already_exists,
                           const std::string &move_from, const std::string &move_to);
-	EntityMoveInstruction() = default;
+    EntityMoveInstruction() = default;
 
     int                    apply() override;
     std::vector<std::byte> binary_representation() override;
@@ -71,7 +71,7 @@ private:
 public:
     EntityDeleteInstruction(bool        delete_recursively_if_directory,
                             std::string target);
-	EntityDeleteInstruction() = default;
+    EntityDeleteInstruction() = default;
 
     int                    apply() override;
     std::vector<std::byte> binary_representation() override;
@@ -80,15 +80,17 @@ public:
 
 class EntityModifyInstruction : public Instruction {
 private:
+    bool create_subdirectories;
     bool create_empty_file_if_not_exists;
 
     std::string           target;
     std::shared_ptr<Diff> diff;
 
 public:
-    EntityModifyInstruction(bool create_empty_file_if_not_exists, std::string target,
+    EntityModifyInstruction(bool create_subdirectories,
+                            bool create_empty_file_if_not_exists, std::string target,
                             std::shared_ptr<Diff> diff);
-	EntityModifyInstruction() = default;
+    EntityModifyInstruction() = default;
 
     int                    apply() override;
     std::vector<std::byte> binary_representation() override;
@@ -108,7 +110,7 @@ public:
                                        bool     create_empty_directory_if_not_exists,
                                        bool     apply_recursively_if_directory,
                                        uint64_t flags);
-	EntityChangePermissionsInstruction() = default;
+    EntityChangePermissionsInstruction() = default;
 
     int                    apply() override;
     std::vector<std::byte> binary_representation() override;
@@ -136,6 +138,6 @@ public:
      */
     void append(std::shared_ptr<Instruction> instruction);
 
-	int write_to_file(const std::string &file);
-	int load_from_file(const std::string &file);
+    int write_to_file(const std::string &file);
+    int load_from_file(const std::string &file);
 };
