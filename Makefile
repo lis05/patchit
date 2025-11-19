@@ -18,6 +18,10 @@ BINARY := $(BUILD_DIR)/patchit
 VERSION := $(shell ./$(SCRIPTS_DIR)/getversion.sh)
 COMPATIBILITY_VERSION := 0
 
+TESTS_DIR := tests
+TESTS_LOGS_DIR := testing_logs
+TESTS_RUNTIME_DIR := runtime_testing
+
 $(BINARY): $(OBJECTS)
 	$(LD) $(LDFLAGS) -o $@ $^
 
@@ -26,11 +30,16 @@ $(OBJECTS): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
 		-DPATCHIT_VERSION='"$(VERSION)"' \
 		-DPATCHIT_COMPATIBILITY_VERSION=$(COMPATIBILITY_VERSION)
 
+test: $(OBJECTS)
+	bash $(TESTS_DIR)/runtests.sh $(BINARY)
+
 
 .PHONY: clean
 clean:
-	rm -r $(wildcard ${BUILD_DIR}/*) \
-		$(wildcard ${OBJ_DIR}/*)
+	rm -rf $(wildcard ${BUILD_DIR}/*) \
+        $(wildcard ${OBJ_DIR}/*) \
+		$(TESTS_RUNTIME_DIR) \
+		$(TESTS_LOGS_DIR)
 
 .PHONY: vars
 vars:
