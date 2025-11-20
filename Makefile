@@ -19,7 +19,7 @@ VERSION := $(shell ./$(SCRIPTS_DIR)/getversion.sh)
 COMPATIBILITY_VERSION := 0
 
 TESTS_DIR := tests
-TESTS_LOGS_DIR := testing_logs
+TESTS_LOGS_DIR := logs
 TESTS_RUNTIME_DIR := runtime_testing
 
 $(BINARY): $(OBJECTS)
@@ -30,7 +30,7 @@ $(OBJECTS): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
 		-DPATCHIT_VERSION='"$(VERSION)"' \
 		-DPATCHIT_COMPATIBILITY_VERSION=$(COMPATIBILITY_VERSION)
 
-test: $(OBJECTS)
+test: $(BINARY)
 	bash $(TESTS_DIR)/runtests.sh $(BINARY)
 
 
