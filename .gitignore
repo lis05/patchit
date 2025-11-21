@@ -3,4 +3,5 @@ obj
 src/**/.cpp.swp
 src/**/.hpp.swp
 runtime_testing
+runtime_data
 logs

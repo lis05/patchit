@@ -21,6 +21,7 @@ COMPATIBILITY_VERSION := 0
 TESTS_DIR := tests
 TESTS_LOGS_DIR := logs
 TESTS_RUNTIME_DIR := runtime_testing
+TESTS_RUNTIME_DATA := runtime_data
 
 $(BINARY): $(OBJECTS)
 	$(LD) $(LDFLAGS) -o $@ $^
@@ -39,7 +40,8 @@ clean:
 	rm -rf $(wildcard ${BUILD_DIR}/*) \
         $(wildcard ${OBJ_DIR}/*) \
 		$(TESTS_RUNTIME_DIR) \
-		$(TESTS_LOGS_DIR)
+		$(TESTS_LOGS_DIR) \
+		$(TESTS_RUNTIME_DATA)
 
 .PHONY: vars
 vars:

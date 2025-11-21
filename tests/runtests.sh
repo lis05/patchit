@@ -8,6 +8,7 @@ BINARY=$(realpath "$1")
 DATA_DIR="$(realpath tests/data)"
 SCRIPTS_DIR="$(realpath tests/scripts)"
 RUNTIME_DIR="$(realpath runtime_testing)"
+RUNTIME_DATA="$(realpath runtime_data)"
 LOGS_DIR="$(realpath logs)"
 
 rm -rf "$LOGS_DIR"
@@ -26,11 +27,11 @@ run_script() {
 	rm -rf "$RUNTIME_DIR"
 	mkdir "$RUNTIME_DIR"
 
-	rsync -a "$DATA_DIR/" "$RUNTIME_DIR/"
-
 	pushd "$RUNTIME_DIR" >/dev/null
+	rm -rf "$RUNTIME_DATA"
+	rsync -a "$DATA_DIR/" "$RUNTIME_DATA/"
 
-	"$script_path" "$BINARY" "$RUNTIME_DIR" >"$log_file" 2>&1
+	"$script_path" "$BINARY" "$RUNTIME_DIR" "$RUNTIME_DATA" >"$log_file" 2>&1
 	ec=$?
 
 	if [ "$ec" = "0" ]; then
@@ -38,7 +39,7 @@ run_script() {
 	else
 		success="0"
 		echo -e "${RED}Failed${NC}: $(basename $script_path) ec=$ec"
-		tail -n 7 "$log_file" | sed -e 's/^/     /'
+		tail -n 15 "$log_file" | sed -e 's/^/     /'
 	fi
 
 	popd >/dev/null
