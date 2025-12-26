@@ -76,7 +76,7 @@ int write_entire_file(const char *filename, FILE *fd,
         ERROR("Failed to write %s: %s\n", filename, strerror(errno));
         return -1;
     }
-	std::clearerr(fd);
+    std::clearerr(fd);
     return 0;
 }
 
@@ -106,4 +106,29 @@ void handle_unknown_option(int optind, char optopt, char **argv) {
     } else {
         CRIT("Unrecognized option.\n");
     }
+}
+
+void store_uint64_t(uint64_t value, std::vector<std::byte> &data) {
+    for (int i = 0; i < 8; i++) {
+        data.push_back((std::byte)(value & 0xFF));
+        value >>= 8;
+    }
+}
+
+int restore_uint64_t(std::vector<std::byte>::iterator       &it,
+                     const std::vector<std::byte>::iterator &end_it,
+                     uint64_t                               &value) {
+    if (it + 7 >= end_it) {
+        return -1;
+    }
+    value = 0;
+    it = it + 7;
+
+    for (int i = 0; i < 8; i++) {
+        value <<= 8;
+        value |= (uint64_t)*it;
+        it--;
+    }
+    it += 9;
+    return 0;
 }

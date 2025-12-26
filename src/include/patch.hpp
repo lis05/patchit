@@ -8,7 +8,7 @@
 
 class Instruction {
 protected:
-	friend class Patch;
+    friend class Patch;
 
     std::shared_ptr<Compressor> compressor;
 
@@ -45,7 +45,7 @@ public:
 
 class EntityMoveInstruction : public Instruction {
 private:
-	friend class Patch;
+    friend class Patch;
 
     bool create_empty_file_if_not_exists;
     bool create_empty_directory_if_not_exists;
@@ -68,7 +68,7 @@ public:
 
 class EntityDeleteInstruction : public Instruction {
 private:
-	friend class Patch;
+    friend class Patch;
 
     bool delete_recursively_if_directory;
 
@@ -86,7 +86,7 @@ public:
 
 class EntityModifyInstruction : public Instruction {
 private:
-	friend class Patch;
+    friend class Patch;
 
     bool create_subdirectories;
     bool create_empty_file_if_not_exists;
@@ -107,7 +107,7 @@ public:
 
 class EntityChangePermissionsInstruction : public Instruction {
 private:
-	friend class Patch;
+    friend class Patch;
 
     bool create_empty_file_if_not_exists;
     bool create_empty_directory_if_not_exists;
@@ -151,5 +151,5 @@ public:
     int write_to_file(const std::string &file);
     int load_from_file(const std::string &file);
 
-	void inspect_contents(int verbosity);
+    void inspect_contents(int verbosity);
 };

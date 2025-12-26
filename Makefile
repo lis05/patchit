@@ -3,7 +3,7 @@ SHELL=/bin/bash
 CXX := g++
 LD := g++
 CXXFLAGS := -O0 -g --std=c++20
-LDFLAGS :=
+LDFLAGS := -Llibs/zlib -lz  #-Wl,--verbose
 
 SRC_DIR := src
 INC_DIR := src/include
@@ -13,6 +13,7 @@ SCRIPTS_DIR := scripts
 SOURCES := $(wildcard $(SRC_DIR)/*.cpp)
 HEADERS := $(wildcard $(INC_DIR)/*.hpp)
 OBJECTS := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SOURCES))
+DEPENDENCIES := -Ilibs/zlib
 BINARY := $(BUILD_DIR)/patchit
 
 VERSION := $(shell ./$(SCRIPTS_DIR)/getversion.sh)
@@ -24,16 +25,19 @@ TESTS_RUNTIME_DIR := runtime_testing
 TESTS_RUNTIME_DATA := runtime_data
 
 $(BINARY): $(OBJECTS)
-	$(LD) $(LDFLAGS) -o $@ $^
+	$(LD) -o $@ $^ $(LDFLAGS)
 
 $(OBJECTS): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
-	$(CXX) $(CXXFLAGS) -c -o $@ $< -I${INC_DIR} \
+	$(CXX) $(CXXFLAGS) -c -o $@ $< -I${INC_DIR} ${DEPENDENCIES} \
 		-DPATCHIT_VERSION='"$(VERSION)"' \
 		-DPATCHIT_COMPATIBILITY_VERSION=$(COMPATIBILITY_VERSION)
 
 test: $(BINARY)
 	bash $(TESTS_DIR)/runtests.sh $(BINARY)
 
+.PHONY: libs
+libs:
+	make -C libs/zlib
 
 .PHONY: clean
 clean:

@@ -60,31 +60,6 @@ void Patch::append(std::shared_ptr<Instruction> instruction) {
  * ...
  */
 
-static void store_uint64_t(uint64_t value, std::vector<std::byte> &data) {
-    for (int i = 0; i < 8; i++) {
-        data.push_back((std::byte)(value & 0xFF));
-        value >>= 8;
-    }
-}
-
-static int restore_uint64_t(std::vector<std::byte>::iterator       &it,
-                            const std::vector<std::byte>::iterator &end_it,
-                            uint64_t                               &value) {
-    if (it + 7 >= end_it) {
-        return -1;
-    }
-    value = 0;
-    it = it + 7;
-
-    for (int i = 0; i < 8; i++) {
-        value <<= 8;
-        value |= (uint64_t)*it;
-        it--;
-    }
-    it += 9;
-    return 0;
-}
-
 int Patch::write_to_file(const std::string &file) {
     INFO("Writing patch to file: %s\n", file.c_str());
     std::vector<std::byte> data;
@@ -136,31 +111,31 @@ int Patch::load_from_file(const std::string &file) {
     it++;
 
     uint64_t compatibility_version;
-        if (restore_uint64_t(it, data.end(), compatibility_version)) {
+    if (restore_uint64_t(it, data.end(), compatibility_version)) {
         ERROR("Failed to load patch %s: invalid compatibility version.\n",
               file.c_str());
         return -1;
-	}
+    }
 
-	if (compatibility_version != Patch::compatibility_version) {
+    if (compatibility_version != Patch::compatibility_version) {
         ERROR(
             "Failed to load patch %s: compatibility version differs: found %zu, "
             "must be %zu\n",
             (size_t)compatibility_version, (size_t)Patch::compatibility_version);
-	}
+    }
 
-	uint64_t count;
-	if (restore_uint64_t(it, data.end(), count)) {
+    uint64_t count;
+    if (restore_uint64_t(it, data.end(), count)) {
         ERROR("Failed to load patch %s: invalid number of instructions.\n",
               file.c_str());
         return -1;
-	}
-	INFO("Patch contains %zu instructions.\n", count);
+    }
+    INFO("Patch contains %zu instructions.\n", count);
 
-	std::vector<std::byte> repr;
-	uint64_t len;
+    std::vector<std::byte> repr;
+    uint64_t               len;
 
-	while (count--) {
+    while (count--) {
         if (restore_uint64_t(it, data.end(), len)) {
             ERROR("Failed to load patch %s: invalid instruction size.\n",
                   file.c_str());
@@ -200,44 +175,44 @@ int Patch::load_from_file(const std::string &file) {
         }
 
         append(instruction);
-	}
-	INFO("Loaded %zu instructions successfully.\n", instructions.size());
-	return 0;
+    }
+    INFO("Loaded %zu instructions successfully.\n", instructions.size());
+    return 0;
 }
 
 void Patch::inspect_contents(int verbosity) {
-	MSG("compatibility version: %zu\n", (size_t)Patch::compatibility_version);
-	MSG("contains: %zu instructions\n", instructions.size());
+    MSG("compatibility version: %zu\n", (size_t)Patch::compatibility_version);
+    MSG("contains: %zu instructions\n", instructions.size());
 
-	if (verbosity < 1) {
-		return;
-	}
+    if (verbosity < 1) {
+        return;
+    }
 
-	MSG("instructions:\n");
-	for (size_t i = 0; i < instructions.size(); i++) {
-		MSG("  %zu. ", i + 1);
+    MSG("instructions:\n");
+    for (size_t i = 0; i < instructions.size(); i++) {
+        MSG("  %zu. ", i + 1);
 
-		const Instruction *const ins = instructions[i].get();
-		const EntityModifyInstruction *emIns;
+        const Instruction *const       ins = instructions[i].get();
+        const EntityModifyInstruction *emIns;
 
-		switch (ins->signature) {
-		case Instruction::ENTITY_MODIFY:
-			MSG("entity modification\n");
-			emIns = (const EntityModifyInstruction*)ins;
-			if (verbosity >= 2) {
-				MSG("    target: %s\n", emIns->target.c_str());
-				if (verbosity >= 3) {
-					MSG("    flags: ");
-					if (emIns->create_subdirectories) {
-						MSG("create subdirectories, ");
-					}
-					if (emIns->create_empty_file_if_not_exists) {
-						MSG("create empty file if not exists, ");
-					}
-					MSG("\n");
-				}
-			}
-			break;
-		}
-	}
+        switch (ins->signature) {
+        case Instruction::ENTITY_MODIFY:
+            MSG("entity modification\n");
+            emIns = (const EntityModifyInstruction *)ins;
+            if (verbosity >= 2) {
+                MSG("    target: %s\n", emIns->target.c_str());
+                if (verbosity >= 3) {
+                    MSG("    flags: ");
+                    if (emIns->create_subdirectories) {
+                        MSG("create subdirectories, ");
+                    }
+                    if (emIns->create_empty_file_if_not_exists) {
+                        MSG("create empty file if not exists, ");
+                    }
+                    MSG("\n");
+                }
+            }
+            break;
+        }
+    }
 }

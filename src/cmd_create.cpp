@@ -39,7 +39,7 @@ static void print_help() {
 		"  -d, --diff       DIFF      Use the selected diff method.\n"
 		"                                 Supported diffs: default\n"
 		"  -c, --compressor COMP      Use the selected compression method.\n"
-		"                                 Supported compressors: default\n"
+		"                                 Supported compressors: default zlib\n"
 	);
     // clang-format on
 }
@@ -56,7 +56,6 @@ int do_create_entity_modification(int argc, char **argv, Patch &p) {
     bool                         create_empty_file_if_not_exists = false;
     bool                         create_subdirectories = false;
     char                        *from_file = NULL, *to_file = NULL;
-    Config::get()->compressor = PlainCompressor::get();
 
     while ((short_option = getopt_long(argc, argv, short_opts, long_opts, 0)) !=
            -1) {
@@ -84,6 +83,10 @@ int do_create_entity_modification(int argc, char **argv, Patch &p) {
             INFO("Selected compressor: %s\n", optarg);
             if (!strcmp(optarg, "default")) {
                 Config::get()->compressor = PlainCompressor::get();
+                INFO("Valid compressor.\n");
+            } else if (!strcmp(optarg, "zlib")) {
+                Config::get()->compressor = ZLibCompressor::get();
+                INFO("Valid compressor.\n");
             } else {
                 ERROR("Unrecognized compressor selected: %s\n", optarg);
                 return -1;
@@ -112,6 +115,7 @@ int do_create_entity_modification(int argc, char **argv, Patch &p) {
     return -1;
 
 create:
+    diff->compressor = Config::get()->compressor;
     if (diff->from_files(from_file, to_file)) {
         ERROR(
             "Failed to create an entity modification instruction: diff creation has "

@@ -11,7 +11,7 @@
 #include <utility>
 
 EntityModifyInstruction::EntityModifyInstruction() {
-	this->signature = ENTITY_MODIFY;
+    this->signature = ENTITY_MODIFY;
 }
 
 EntityModifyInstruction::EntityModifyInstruction(
@@ -74,7 +74,7 @@ int EntityModifyInstruction::apply() {
                 return -1;
             }
             INFO("Created empty file since %s did not exist.\n", target.c_str());
-			goto after_checks;
+            goto after_checks;
         }
         ERROR("Failed to patch %s: %s\n", target.c_str(), strerror(errno));
         return -1;
@@ -175,4 +175,3 @@ int EntityModifyInstruction::from_binary_representation(
 
     return diff->from_binary_representation(data_copy);
 }
-

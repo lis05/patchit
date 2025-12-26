@@ -9,8 +9,8 @@
 
 static struct option const long_opts[] = {
     {"help", 0, nullptr, 'h'},    {"version", 0, nullptr, 'v'},
-    {"verbose", 0, nullptr, 'V'}, {"info", 0, nullptr, 'I'}, {"debug", 0, nullptr, 'D'},
-    {nullptr, 0, nullptr, 0},
+    {"verbose", 0, nullptr, 'V'}, {"info", 0, nullptr, 'I'},
+    {"debug", 0, nullptr, 'D'},   {nullptr, 0, nullptr, 0},
 };
 
 static const char *const short_opts = "-hvVID";
@@ -27,9 +27,9 @@ static void print_help() {
         "\n"
         "Options:\n"
         "  -h, --help               show this message\n"
-		"  -v, --version			print version info\n"
+		"  -v, --version            print version info\n"
         "  -V, --verbose            increase verbosity level (1 per V)\n"
-		"  -I, --info				set verobsity level to info\n"
+		"  -I, --info               set verobsity level to info\n"
         "  -D, --debug              set verbosity level to debug (max)\n"
         "\n"
         "Supported commands:\n"
@@ -60,7 +60,8 @@ int main(int argc, char **argv) {
     opterr = 0;
     while ((short_option = getopt_long(argc, argv, short_opts, long_opts, 0)) !=
            -1) {
-        DEBUG("Processing short option '%c' (%d)\n", short_option, (int)short_option);
+        DEBUG("Processing short option '%c' (%d)\n", short_option,
+              (int)short_option);
 
         switch (short_option) {
         case 'h':
@@ -72,9 +73,9 @@ int main(int argc, char **argv) {
         case 'V':
             Config::get()->verbosity++;
             break;
-		case 'I':
-			Config::get()->verbosity = 2;
-			break;
+        case 'I':
+            Config::get()->verbosity = 2;
+            break;
         case 'D':
             Config::get()->verbosity = 3;
             break;
@@ -94,7 +95,7 @@ int main(int argc, char **argv) {
 
             for (auto &[name, func] : command_list) {
                 if (!strcmp(command, name)) {
-					argv[0] = strdup(command); // leaks memory but its ok
+                    argv[0] = strdup(command);  // leaks memory but its ok
                     return func(argc - optind + 1, argv + optind - 1);
                 }
             }

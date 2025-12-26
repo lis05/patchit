@@ -1,11 +1,18 @@
 #include <compressor.hpp>
 
+PlainCompressor::PlainCompressor() {
+}
+
 std::shared_ptr<PlainCompressor> PlainCompressor::get() {
     static std::shared_ptr<PlainCompressor> instance;
     if (!instance) {
         instance.reset(new PlainCompressor());
     }
     return instance;
+}
+
+int PlainCompressor::getId() {
+    return 0;
 }
 
 std::vector<std::byte> PlainCompressor::compress(
