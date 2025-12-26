@@ -11,3 +11,5 @@ int read_entire_file(const char *filename, FILE *fd, std::vector<std::byte> &buf
 
 int open_and_write_entire_file(const char *filename, const std::vector<std::byte> &buffer);
 int write_entire_file(const char *filename, FILE *fd, const std::vector<std::byte> &buffer);
+
+void handle_unknown_option(int optind, char optopt, char **argv);

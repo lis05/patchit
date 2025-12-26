@@ -7,6 +7,7 @@
 #include <diff.hpp>
 #include <error.hpp>
 #include <patch.hpp>
+#include <util.hpp>
 #include <utility>
 
 static struct option const long_opts[] = {{"help", 0, nullptr, 'h'},
@@ -41,16 +42,6 @@ static void print_help() {
 		"                                 Supported compressors: default\n"
 	);
     // clang-format on
-}
-
-static void handle_unknown_option(char **argv) {
-    if (optopt) {
-        CRIT("Unrecognized option: -%c\n", optopt);
-    } else if (argv[optind - 1]) {
-        CRIT("Unrecognized option (possibly '%s')\n", argv[optind - 1]);
-    } else {
-        CRIT("Unrecognized option.\n");
-    }
 }
 
 int do_create_entity_modification(int argc, char **argv, Patch &p) {
@@ -99,7 +90,7 @@ int do_create_entity_modification(int argc, char **argv, Patch &p) {
             }
             break;
         case '?':
-            handle_unknown_option(argv);
+            handle_unknown_option(optind, optopt, argv);
             return -1;
         case 1:
             if (!from_file) {
@@ -168,7 +159,7 @@ int do_command_create(int argc, char **argv) {
             }
             break;
         case '?':
-            handle_unknown_option(argv);
+            handle_unknown_option(optind, optopt, argv);
             return -1;
         case 1:
             if (patchfile) {

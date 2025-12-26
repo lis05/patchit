@@ -97,3 +97,13 @@ int open_and_write_entire_file(const char                   *filename,
     std::fclose(fd);
     return 0;
 }
+
+void handle_unknown_option(int optind, char optopt, char **argv) {
+    if (optopt) {
+        CRIT("Unrecognized option: -%c\n", optopt);
+    } else if (argv[optind - 1]) {
+        CRIT("Unrecognized option (possibly '%s')\n", argv[optind - 1]);
+    } else {
+        CRIT("Unrecognized option.\n");
+    }
+}

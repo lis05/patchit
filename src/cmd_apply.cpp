@@ -6,6 +6,7 @@
 #include <diff.hpp>
 #include <error.hpp>
 #include <patch.hpp>
+#include <util.hpp>
 #include <utility>
 
 static struct option const long_opts[] = {{"help", 0, nullptr, 'h'},
@@ -21,16 +22,6 @@ static void print_help() {
 		"Apply the given patchfile at the provided path.\n"
 	);
     // clang-format on
-}
-
-static void handle_unknown_option(char **argv) {
-    if (optopt) {
-        CRIT("Unrecognized option: -%c\n", optopt);
-    } else if (argv[optind - 1]) {
-        CRIT("Unrecognized option (possibly '%s')\n", argv[optind - 1]);
-    } else {
-        CRIT("Unrecognized option.\n");
-    }
 }
 
 int do_command_apply(int argc, char **argv) {
@@ -67,7 +58,7 @@ int do_command_apply(int argc, char **argv) {
                 goto apply;
             }
         case '?':
-            handle_unknown_option(argv);
+            handle_unknown_option(optind, optopt, argv);
             break;
         default:
             CRIT("Failed to parse options.\n");

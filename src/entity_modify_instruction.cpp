@@ -10,6 +10,10 @@
 #include <patch.hpp>
 #include <utility>
 
+EntityModifyInstruction::EntityModifyInstruction() {
+	this->signature = ENTITY_MODIFY;
+}
+
 EntityModifyInstruction::EntityModifyInstruction(
     bool create_subdirectories, bool create_empty_file_if_not_exists,
     std::string target, std::shared_ptr<Diff> diff) {
