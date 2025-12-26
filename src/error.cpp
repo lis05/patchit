@@ -43,10 +43,10 @@ bool print_message(MessageLevel level, int line, const char *file,
         vfprintf(stdout, format, args);
         break;
     default:
-        fprintf(stderr, color);
+        fprintf(stderr, "%s", color);
         fprintf(stderr, "[%s | %s:%d]: ", title, file, line);
         vfprintf(stderr, format, args);
-        fprintf(stderr, clear);
+        fprintf(stderr, "%s", clear);
         break;
     }
 

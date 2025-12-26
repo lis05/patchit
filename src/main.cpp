@@ -47,7 +47,7 @@ static void print_version() {
     printf("Version: %s\n", version.c_str());
 
     if (compatibility_version != (uint64_t)-1) {
-        printf("Compatibility version: %llu\n", compatibility_version);
+        printf("Compatibility version: %zu\n", (size_t)compatibility_version);
     } else {
         printf("Incompatible with all patches. Please reinstall.\n");
     }

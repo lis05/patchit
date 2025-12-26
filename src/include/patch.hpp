@@ -47,7 +47,6 @@ class EntityMoveInstruction : public Instruction {
 private:
     friend class Patch;
 
-    bool create_empty_file_if_not_exists;
     bool create_empty_directory_if_not_exists;
     bool override_if_already_exists;
 
@@ -55,8 +54,7 @@ private:
     std::string move_to;
 
 public:
-    EntityMoveInstruction(bool               create_empty_file_if_not_exists,
-                          bool               create_empty_directory_if_not_exists,
+    EntityMoveInstruction(bool               create_empty_directory_if_not_exists,
                           bool               override_if_already_exists,
                           const std::string &move_from, const std::string &move_to);
     EntityMoveInstruction() = default;

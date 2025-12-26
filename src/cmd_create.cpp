@@ -40,6 +40,15 @@ static void print_help() {
 		"                                 Supported diffs: default\n"
 		"  -c, --compressor COMP      Use the selected compression method.\n"
 		"                                 Supported compressors: default zlib\n"
+		"\n"
+		"File relocation:\n"
+		"  -R, --relocate FLAGS SOURCEFILE DESTFILE\n"
+		"                             Append a file relocation instruction.\n"
+		"Flags:\n"
+		"  -p                         Create all the necessary subdirectories\n"
+		"                                 if they do not exist.\n"
+		"  -o                         Override the destination file if it exists.\n"
+		"                                 Default behavior is to abort.\n"
 	);
     // clang-format on
 }
