@@ -8,9 +8,9 @@ static const char *const SIGNATURE = "__PATCHIT__";
 std::shared_ptr<Instruction> Instruction::from_signature(uint8_t signature) {
     std::shared_ptr<Instruction> res;
     switch (signature) {
-    // case Instruction::ENTITY_MOVE:
-    //	res.reset(new EntityMoveInstruction());
-    //	break;
+    case Instruction::ENTITY_MOVE:
+        res.reset(new EntityMoveInstruction());
+        break;
     // case Instruction::ENTITY_DELETE:
     //	res.reset(new EntityDeleteInstruction());
     //	break;

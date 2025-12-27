@@ -118,8 +118,8 @@ std::vector<std::byte> EntityModifyInstruction::binary_representation() {
 }
 
 int EntityModifyInstruction::from_binary_representation(
-    const std::vector<std::byte> &data) {
 	INFO("Restoring EntityModifyInstruction\n");
+    const std::vector<std::byte> &data) {
     if (data.empty()) {
         WARN("Empty instruction.\n");
         return 0;
@@ -140,7 +140,7 @@ int EntityModifyInstruction::from_binary_representation(
     }
 
     target = std::string((char *)(data.data()) + 1);
-    INFO("  target: %s\n", target.c_str());
+    INFO("Instruction's target: %s\n", target.c_str());
 
     if (data.size() < 1 + target.size() + 1) {
         ERROR("Invalid diff: no flags.\n");
@@ -149,9 +149,6 @@ int EntityModifyInstruction::from_binary_representation(
 
     this->create_subdirectories = (bool)data[1 + target.size() + 1];
     this->create_empty_file_if_not_exists = (bool)data[1 + target.size() + 2];
-
-	INFO("  create_subdirectories flag: %d\n", (int)create_subdirectories);
-	INFO("  create empty file flag: %d\n", (int)create_empty_file_if_not_exists);
 
     std::vector<std::byte> data_copy = data;
     data_copy.erase(data_copy.begin(), data_copy.begin() + 1 + target.size() + 3);

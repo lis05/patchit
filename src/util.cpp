@@ -1,5 +1,6 @@
 #include <errno.h>
 
+#include <sys/stat.h>
 #include <cstring>
 #include <error.hpp>
 #include <sstream>
@@ -131,4 +132,23 @@ int restore_uint64_t(std::vector<std::byte>::iterator       &it,
     }
     it += 9;
     return 0;
+}
+
+void mkdirr(char *path, mode_t mode) {
+    char *ptr = strrchr(path, '/');
+
+    if (!ptr && strlen(path) == 0) {
+        return;
+    }
+
+    if (ptr) {
+        *ptr = '\0';
+        mkdirr(path, mode);
+        *ptr = '/';
+    }
+
+    INFO("Making directory: %s\n", path);
+    mkdir(path, mode);
+
+    return;
 }

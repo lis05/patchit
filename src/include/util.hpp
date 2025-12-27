@@ -21,3 +21,8 @@ void store_uint64_t(uint64_t value, std::vector<std::byte> &data);
 int  restore_uint64_t(std::vector<std::byte>::iterator       &it,
                       const std::vector<std::byte>::iterator &end_it,
                       uint64_t                               &value);
+
+/*
+ * mkdirs A, A/B, A/B/C for path=A/B/C
+ * */
+void mkdirr(char *path, mode_t mode);

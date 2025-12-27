@@ -10,13 +10,12 @@
 #include <util.hpp>
 #include <utility>
 
-static struct option const long_opts[] = {{"help", 0, nullptr, 'h'},
-                                          {"modify", 0, nullptr, 'M'},
-                                          {"compressor", 0, nullptr, 'c'},
-                                          {"diff", 0, nullptr, 'd'},
-                                          {nullptr, 0, nullptr, 0}};
+static struct option const long_opts[] = {
+    {"help", 0, nullptr, 'h'},       {"modify", 0, nullptr, 'M'},
+    {"compressor", 0, nullptr, 'c'}, {"diff", 0, nullptr, 'd'},
+    {"relocate", 0, nullptr, 'R'},   {nullptr, 0, nullptr, 0}};
 
-static const char *const short_opts = "-hMc:d:pe";
+static const char *const short_opts = "-hMc:d:peRo";
 
 static void print_help() {
     // clang-format off
@@ -140,6 +139,62 @@ create:
     return 0;
 }
 
+int do_create_entity_move(int argc, char **argv, Patch &p) {
+    INFO("Handling entity relocationg instruction.\n");
+    for (int i = 0; i < argc; i++) {
+        DEBUG("argv[%d] = %s\n", i, argv[i]);
+    }
+    char short_option;
+
+    std::shared_ptr<Instruction> ins;
+    bool                         create_subdirectories = false;
+    bool                         override_if_already_exists = false;
+    char                        *move_from = NULL, *move_to = NULL;
+
+    while ((short_option = getopt_long(argc, argv, short_opts, long_opts, 0)) !=
+           -1) {
+        DEBUG("Processing short option '%c' (%d)\n", short_option,
+              (int)short_option);
+        switch (short_option) {
+        case 'p':
+            INFO("Selected create_subdirectories = true\n");
+            create_subdirectories = true;
+            break;
+        case 'o':
+            INFO("Selected override_if_already_exists = true\n");
+            override_if_already_exists = true;
+            break;
+        case '?':
+            handle_unknown_option(optind, optopt, argv);
+            return -1;
+        case 1:
+            if (!move_from) {
+                move_from = argv[optind - 1];
+                INFO("Move from: %s\n", move_from);
+            } else if (!move_to) {
+                move_to = argv[optind - 1];
+                INFO("Move to: %s\n", move_to);
+                goto move;
+            }
+            break;
+        default:
+            CRIT("Failed to parse options.\n");
+            return -1;
+        }
+    }
+
+    ERROR("Please specify source and destination files.\n");
+    return -1;
+
+move:
+    ins.reset(new EntityMoveInstruction(
+        create_subdirectories, override_if_already_exists, move_from, move_to));
+    p.append(ins);
+    INFO("Successfully created new entity relocation instruction: %s -> %s.\n",
+         move_from, move_to);
+    return 0;
+}
+
 int do_command_create(int argc, char **argv) {
     for (int i = 0; i < argc; i++) {
         DEBUG("Got argv[i]: %s\n", argv[i]);
@@ -168,6 +223,16 @@ int do_command_create(int argc, char **argv) {
             }
 
             if ((r = do_create_entity_modification(argc, argv, p))) {
+                return r;
+            }
+            break;
+        case 'R':
+            if (!patchfile) {
+                ERROR("Patchfile was not specified.\n");
+                return -1;
+            }
+
+            if ((r = do_create_entity_move(argc, argv, p))) {
                 return r;
             }
             break;
