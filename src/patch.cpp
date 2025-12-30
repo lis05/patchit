@@ -11,9 +11,9 @@ std::shared_ptr<Instruction> Instruction::from_signature(uint8_t signature) {
     case Instruction::ENTITY_MOVE:
         res.reset(new EntityMoveInstruction());
         break;
-    // case Instruction::ENTITY_DELETE:
-    //	res.reset(new EntityDeleteInstruction());
-    //	break;
+    case Instruction::ENTITY_DELETE:
+        res.reset(new EntityDeleteInstruction());
+        break;
     case Instruction::ENTITY_MODIFY:
         INFO("Instruction signature recognized: ENTITY_MODIFY\n");
         res.reset(new EntityModifyInstruction());

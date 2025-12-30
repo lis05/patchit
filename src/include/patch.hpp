@@ -57,7 +57,7 @@ public:
     EntityMoveInstruction(bool               create_subdirectories,
                           bool               override_if_already_exists,
                           const std::string &move_from, const std::string &move_to);
-    EntityMoveInstruction() = default;
+    EntityMoveInstruction();
 
     int                    apply() override;
     std::vector<std::byte> binary_representation() override;
@@ -74,8 +74,8 @@ private:
 
 public:
     EntityDeleteInstruction(bool        delete_recursively_if_directory,
-                            std::string target);
-    EntityDeleteInstruction() = default;
+                            const std::string &target);
+    EntityDeleteInstruction();
 
     int                    apply() override;
     std::vector<std::byte> binary_representation() override;
@@ -118,7 +118,7 @@ public:
                                        bool     create_empty_directory_if_not_exists,
                                        bool     apply_recursively_if_directory,
                                        uint64_t flags);
-    EntityChangePermissionsInstruction() = default;
+    EntityChangePermissionsInstruction();
 
     int                    apply() override;
     std::vector<std::byte> binary_representation() override;

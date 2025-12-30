@@ -12,10 +12,15 @@
 #include <util.hpp>
 #include <utility>
 
+EntityMoveInstruction::EntityMoveInstruction() {
+    this->signature = ENTITY_MOVE;
+}
+
 EntityMoveInstruction::EntityMoveInstruction(bool create_subdirectories,
                                              bool override_if_already_exists,
                                              const std::string &move_from,
                                              const std::string &move_to) {
+    this->signature = ENTITY_MOVE;
     this->create_subdirectories = create_subdirectories;
     this->override_if_already_exists = override_if_already_exists;
     this->move_from = move_from;
@@ -80,6 +85,8 @@ int EntityMoveInstruction::apply() {
     } else {
         INFO("Not relocating.\n");
     }
+
+	INFO("Applied relocation successfully to %s\n", move_from.c_str());
 
     return 0;
 }

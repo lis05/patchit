@@ -13,9 +13,10 @@
 static struct option const long_opts[] = {
     {"help", 0, nullptr, 'h'},       {"modify", 0, nullptr, 'M'},
     {"compressor", 0, nullptr, 'c'}, {"diff", 0, nullptr, 'd'},
-    {"relocate", 0, nullptr, 'R'},   {nullptr, 0, nullptr, 0}};
+    {"relocate", 0, nullptr, 'R'},   {"delete", 0, nullptr, 'D'},
+    {nullptr, 0, nullptr, 0}};
 
-static const char *const short_opts = "-hMc:d:peRo";
+static const char *const short_opts = "-hMc:d:peRoDr";
 
 static void print_help() {
     // clang-format off
@@ -27,7 +28,7 @@ static void print_help() {
 		"\n"
 		"Instructions with their respective flags:\n"
 		"\n"
-		"File modification:\n"
+		"Modification:\n"
 		"  -M, --modify FLAGS SOURCEFILE DESTFILE\n"
 		"                             Append a file modification instruction.\n"
 		"Flags:\n"
@@ -39,8 +40,10 @@ static void print_help() {
 		"                                 Supported diffs: default\n"
 		"  -c, --compressor COMP      Use the selected compression method.\n"
 		"                                 Supported compressors: default zlib\n"
+		"  Note:\n"
+		"    1. default diff requires commands xxd, diff, and patch\n"
 		"\n"
-		"File relocation:\n"
+		"Relocation:\n"
 		"  -R, --relocate FLAGS SOURCEFILE DESTFILE\n"
 		"                             Append a file relocation instruction.\n"
 		"Flags:\n"
@@ -48,6 +51,16 @@ static void print_help() {
 		"                                 if they do not exist.\n"
 		"  -o                         Override the destination file if it exists.\n"
 		"                                 Default behavior is to abort.\n"
+		"\n"
+		"Deletion:\n"
+		"  -D, --delete FLAGS TARGET\n"
+		"                             Append an entity deletion instruction.\n"
+		"Flags:\n"
+		"  -r                         Delete recursively if target is a directory.\n"
+		"                                 No action will be taken by default.\n"
+		"  Note:\n"
+		"    1. Entities are deleted using 'rm -v --interactive=never --preserve-root=all [-r]'\n"
+		"           where -r is added if -r is given to patchit.\n"
 	);
     // clang-format on
 }
@@ -195,6 +208,52 @@ move:
     return 0;
 }
 
+int do_create_entity_delete(int argc, char **argv, Patch &p) {
+    INFO("Handling entity deletion instruction.\n");
+    for (int i = 0; i < argc; i++) {
+        DEBUG("argv[%d] = %s\n", i, argv[i]);
+    }
+    char short_option;
+
+    std::shared_ptr<Instruction> ins;
+    bool                         delete_recursively_if_directory = false;
+    char                        *target = NULL;
+
+    while ((short_option = getopt_long(argc, argv, short_opts, long_opts, 0)) !=
+           -1) {
+        DEBUG("Processing short option '%c' (%d)\n", short_option,
+              (int)short_option);
+        switch (short_option) {
+        case 'r':
+            INFO("Selected delete_recursively_if_directory = true\n");
+            delete_recursively_if_directory = true;
+            break;
+        case '?':
+            handle_unknown_option(optind, optopt, argv);
+            return -1;
+        case 1:
+            if (!target) {
+                target = argv[optind - 1];
+                INFO("Target: %s\n", target);
+                goto _delete;
+            }
+            break;
+        default:
+            CRIT("Failed to parse options.\n");
+            return -1;
+        }
+    }
+
+    ERROR("Please specify target.\n");
+    return -1;
+
+_delete:
+    ins.reset(new EntityDeleteInstruction(delete_recursively_if_directory, target));
+    p.append(ins);
+    INFO("Successfully created new entity deletion instruction: %s\n", target);
+    return 0;
+}
+
 int do_command_create(int argc, char **argv) {
     for (int i = 0; i < argc; i++) {
         DEBUG("Got argv[i]: %s\n", argv[i]);
@@ -233,6 +292,16 @@ int do_command_create(int argc, char **argv) {
             }
 
             if ((r = do_create_entity_move(argc, argv, p))) {
+                return r;
+            }
+            break;
+        case 'D':
+            if (!patchfile) {
+                ERROR("Patchfile was not specified.\n");
+                return -1;
+            }
+
+            if ((r = do_create_entity_delete(argc, argv, p))) {
                 return r;
             }
             break;
