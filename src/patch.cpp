@@ -18,9 +18,6 @@ std::shared_ptr<Instruction> Instruction::from_signature(uint8_t signature) {
         INFO("Instruction signature recognized: ENTITY_MODIFY\n");
         res.reset(new EntityModifyInstruction());
         break;
-        // case Instruction::ENTITY_CHANGE_PERMISSIONS:
-        //	res.reset(new EntityChangePermissionsInstruction());
-        //	break;
     }
 
     if (!res) {

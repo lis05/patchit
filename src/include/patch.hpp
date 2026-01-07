@@ -17,7 +17,6 @@ public:
         ENTITY_MOVE,
         ENTITY_DELETE,
         ENTITY_MODIFY,
-        ENTITY_CHANGE_PERMISSIONS
     } signature;
     /*
      * Apply this instruction. Returns 0 on success.
@@ -73,7 +72,7 @@ private:
     std::string target;
 
 public:
-    EntityDeleteInstruction(bool        delete_recursively_if_directory,
+    EntityDeleteInstruction(bool               delete_recursively_if_directory,
                             const std::string &target);
     EntityDeleteInstruction();
 
@@ -97,28 +96,6 @@ public:
                             bool create_empty_file_if_not_exists, std::string target,
                             std::shared_ptr<Diff> diff);
     EntityModifyInstruction();
-
-    int                    apply() override;
-    std::vector<std::byte> binary_representation() override;
-    int from_binary_representation(const std::vector<std::byte> &data) override;
-};
-
-class EntityChangePermissionsInstruction : public Instruction {
-private:
-    friend class Patch;
-
-    bool create_empty_file_if_not_exists;
-    bool create_empty_directory_if_not_exists;
-    bool apply_recursively_if_directory;
-
-    uint64_t flags;  // 4=r, 2=w, 1=x
-
-public:
-    EntityChangePermissionsInstruction(bool     create_empty_file_if_not_exists,
-                                       bool     create_empty_directory_if_not_exists,
-                                       bool     apply_recursively_if_directory,
-                                       uint64_t flags);
-    EntityChangePermissionsInstruction();
 
     int                    apply() override;
     std::vector<std::byte> binary_representation() override;
