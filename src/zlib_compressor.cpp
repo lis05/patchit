@@ -15,7 +15,7 @@ std::shared_ptr<ZLibCompressor> ZLibCompressor::get() {
     return instance;
 }
 
-int ZLibCompressor::getId() {
+int ZLibCompressor::get_id() {
     return 1;
 }
 

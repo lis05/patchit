@@ -9,7 +9,7 @@ public:
     /*
      * Compressor ID.
      */
-    virtual int getId() = 0;
+    virtual int get_id() = 0;
 
     /*
      * Compress the provided data.
@@ -33,7 +33,7 @@ private:
 public:
     static std::shared_ptr<PlainCompressor> get();
 
-    int                    getId() override;
+    int                    get_id() override;
     std::vector<std::byte> compress(const std::vector<std::byte> &data) override;
     std::vector<std::byte> decompress(const std::vector<std::byte> &data) override;
 };
@@ -48,7 +48,7 @@ private:
 public:
     static std::shared_ptr<ZLibCompressor> get();
 
-    int                    getId() override;
+    int                    get_id() override;
     std::vector<std::byte> compress(const std::vector<std::byte> &data) override;
     std::vector<std::byte> decompress(const std::vector<std::byte> &data) override;
 };

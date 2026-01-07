@@ -123,7 +123,7 @@ cleanup:
 
 std::vector<std::byte> SystemDiff::binary_representation() {
     std::vector<std::byte> ret = compressor->compress(data);
-    ret.insert(ret.begin(), (std::byte)compressor->getId());
+    ret.insert(ret.begin(), (std::byte)compressor->get_id());
     return ret;
 }
 
@@ -136,9 +136,9 @@ int SystemDiff::from_binary_representation(const std::vector<std::byte> &data) {
         return -1;
     }
 
-    if ((int)data[0] == PlainCompressor::get()->getId()) {
+    if ((int)data[0] == PlainCompressor::get()->get_id()) {
         compressor = PlainCompressor::get();
-    } else if ((int)data[0] == ZLibCompressor::get()->getId()) {
+    } else if ((int)data[0] == ZLibCompressor::get()->get_id()) {
         compressor = ZLibCompressor::get();
     } else {
         ERROR("Invalid compressor id: %d\n", (int)data[0]);

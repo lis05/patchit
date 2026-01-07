@@ -11,7 +11,7 @@ std::shared_ptr<PlainCompressor> PlainCompressor::get() {
     return instance;
 }
 
-int PlainCompressor::getId() {
+int PlainCompressor::get_id() {
     return 0;
 }
 
