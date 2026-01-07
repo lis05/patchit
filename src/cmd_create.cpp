@@ -153,7 +153,7 @@ create:
 }
 
 int do_create_entity_move(int argc, char **argv, Patch &p) {
-    INFO("Handling entity relocationg instruction.\n");
+    INFO("Handling entity relocation instruction.\n");
     for (int i = 0; i < argc; i++) {
         DEBUG("argv[%d] = %s\n", i, argv[i]);
     }

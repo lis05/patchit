@@ -29,7 +29,7 @@ static void print_help() {
         "  -h, --help               show this message\n"
 		"  -v, --version            print version info\n"
         "  -V, --verbose            increase verbosity level (1 per V)\n"
-		"  -I, --info               set verobsity level to info\n"
+		"  -I, --info               set verbosity level to info\n"
         "  -D, --debug              set verbosity level to debug (max)\n"
         "\n"
         "Supported commands:\n"
