@@ -191,15 +191,17 @@ void Patch::inspect_contents(int verbosity) {
 
         const Instruction *const       ins = instructions[i].get();
         const EntityModifyInstruction *emIns;
+		const EntityMoveInstruction *evIns;
+		const EntityDeleteInstruction *edIns;
 
         switch (ins->signature) {
         case Instruction::ENTITY_MODIFY:
             MSG("entity modification\n");
             emIns = (const EntityModifyInstruction *)ins;
             if (verbosity >= 2) {
-                MSG("    target: %s\n", emIns->target.c_str());
+                MSG("      target: %s\n", emIns->target.c_str());
                 if (verbosity >= 3) {
-                    MSG("    flags: ");
+                    MSG("      flags: ");
                     if (emIns->create_subdirectories) {
                         MSG("create subdirectories, ");
                     }
@@ -210,6 +212,38 @@ void Patch::inspect_contents(int verbosity) {
                 }
             }
             break;
+		case Instruction::ENTITY_MOVE:
+			MSG("entity relocation\n");
+			evIns = (const EntityMoveInstruction *)ins;
+			if (verbosity >= 2) {
+				MSG("      move_from: %s\n", evIns->move_from.c_str());
+				MSG("      move_to: %s\n", evIns->move_to.c_str());
+				if (verbosity >= 3) {
+					MSG("      flags: ");
+					if (evIns->create_subdirectories) {
+						MSG("create subdirectories, ");
+					}
+					if (evIns->override_if_already_exists) {
+						MSG("override, ");
+					}
+					MSG("\n");
+				}
+			}
+			break;
+		case Instruction::ENTITY_DELETE:
+			MSG("entity delete\n");
+			edIns = (const EntityDeleteInstruction *)ins;
+			if (verbosity >= 2) {
+				MSG("      target: %s\n", edIns->target.c_str());
+				if (verbosity >= 3) {
+					MSG("      flags: ");
+					if (edIns->delete_recursively_if_directory) {
+						MSG("delete recursively, ");
+					}
+					MSG("\n");
+				}
+			}
+			break;
         }
     }
 }
