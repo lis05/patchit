@@ -5,3 +5,5 @@ src/**/.hpp.swp
 runtime_testing
 runtime_data
 logs
+cov
+coverage.info
