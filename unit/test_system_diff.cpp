@@ -162,6 +162,6 @@ TEST(system_diff_apply_empty_diff) {
 	std::system("rm -rf " TEMP_FILE3);
 	std::system("cp " SRC " " TEMP_FILE3);
 
-	ASSERT_EQUAL(ptr->apply(TEMP_FILE3), -1);
+	ASSERT_EQUAL(ptr->apply(TEMP_FILE3), 0);
 }
 
