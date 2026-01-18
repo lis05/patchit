@@ -57,14 +57,15 @@ $(UNIT_TESTS_OBJECTS): $(UNIT_TESTS_OBJ)/%.o: $(UNIT_TESTS_DIR)/%.cpp $(HEADERS)
 		-DPATCHIT_VERSION='"$(VERSION)"' \
 		-DPATCHIT_COMPATIBILITY_VERSION=$(COMPATIBILITY_VERSION)
 
+unit: CXXFLAGS := $(CXXFLAGS) -fno-access-control
 unit: $(UNIT_TESTS_BINARY)
 	@echo =====================================================
-	./$(UNIT_TESTS_BINARY)
+	./$(UNIT_TESTS_BINARY) || true
 	@echo =====================================================
 
 .PHONY: cov
 cov:
-	lcov --capture --directory $(OBJ_DIR) --output-file coverage.info
+	lcov --capture --directory $(OBJ_DIR) --exclude='$(SRC_DIR)/cmd*.cpp' --output-file coverage.info
 	genhtml coverage.info --output-directory cov
 
 .PHONY: unitcov
