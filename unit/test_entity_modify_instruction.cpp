@@ -26,6 +26,8 @@ static std::string vec2str(std::vector<std::byte> v) {
 #define NESTED TEMP_FILE3 "/file"
 
 static void setup() {
+	std::system("chmod -R 777 " SRC);
+	std::system("chmod -R 777 " DEST);
 	std::system("rm -rf " SRC);
 	std::system("rm -rf " DEST);
 	open_and_write_entire_file(SRC, str2vec(""));
@@ -44,9 +46,8 @@ TEST(entity_modify_instruction_constructor_no_args) {
 
 TEST(entity_modify_instruction_constructor_with_args) {
 	setup();
-	auto e = std::make_shared<EntityModifyInstruction>();
 	auto diff = static_pointer_cast<Diff>(std::make_shared<SystemDiff>());
-	e = std::make_shared<EntityModifyInstruction>(true, true, "target", diff);
+	auto e = std::make_shared<EntityModifyInstruction>(true, true, "target", diff);
 	ASSERT_EQUAL(e->create_subdirectories, true);
 	ASSERT_EQUAL(e->create_empty_file_if_not_exists, true);
 	ASSERT_EQUAL(e->target, "target");
@@ -190,6 +191,7 @@ TEST(entity_modify_instruction_apply_not_a_regular_file) {
 	auto diff_data = sd->binary_representation();
 	auto e = std::make_shared<EntityModifyInstruction>(false, false, SRC, d);
 
+	std::system("chmod -R 777 " SRC);
 	std::system("rm " SRC);
 	std::system("mkdir " SRC);
 	ASSERT_EQUAL(e->apply(), -1);
@@ -284,9 +286,10 @@ TEST(entity_modify_instruction_apply_missing_but_failed_to_create_empty) {
 	auto diff_data = sd->binary_representation();
 	auto e = std::make_shared<EntityModifyInstruction>(false, true, NESTED, d);
 
-	std::system("rf -rf " NESTED);
+	std::system("chmod -R 777 " NESTED);
+	std::system("rm -rf " NESTED);
 	std::system("mkdir -p " NESTED);
-	std::system("chmod -r 444 " TEMP_FILE3);
+	std::system("chmod -R 444 " TEMP_FILE3);
 	ASSERT_EQUAL(e->apply(), -1);
 }
 
@@ -299,6 +302,7 @@ TEST(entity_modify_instruction_apply_created_subdirectories_but_cannot_create_em
 	auto diff_data = sd->binary_representation();
 	auto e = std::make_shared<EntityModifyInstruction>(true, false, NESTED, d);
 
+	std::system("chmod -R 777 " TEMP_FILE3);
 	std::system("rm -rf " TEMP_FILE3);
 	ASSERT_EQUAL(e->apply(), -1);
 }

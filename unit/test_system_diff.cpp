@@ -25,6 +25,8 @@ static std::string vec2str(std::vector<std::byte> v) {
 #define DEST TEMP_FILE2
 
 static void setup() {
+	std::system("chmod -R 777 " SRC);
+	std::system("chmod -R 777 " DEST);
 	std::system("rm -rf " SRC);
 	std::system("rm -rf " DEST);
 	open_and_write_entire_file(SRC, str2vec("from"));
@@ -41,7 +43,7 @@ TEST(system_diff_constructor) {
 	ptr.reset(diff);
 }
 
-TEST(system_diff_from_files__ok) {
+TEST(system_diff_from_files_ok) {
 	setup();
 	std::shared_ptr<SystemDiff> ptr = dynamic_pointer_cast<SystemDiff>(Diff::from_signature(Diff::SYSTEM_DIFF));
 
@@ -52,7 +54,7 @@ TEST(system_diff_from_files__ok) {
 	ASSERT_TRUE(!ptr->data.empty());
 }
 
-TEST(system_diff_from_files__no_xxd) {
+TEST(system_diff_from_files_no_xxd) {
 	setup();
 	std::shared_ptr<SystemDiff> ptr = dynamic_pointer_cast<SystemDiff>(Diff::from_signature(Diff::SYSTEM_DIFF));
 
@@ -78,7 +80,7 @@ TEST(system_diff_binary_representation) {
 	ASSERT_EQUAL(vec[0], (std::byte)ptr->compressor->get_id());
 }
 
-TEST(system_diff_from_binary_representation__plain) {
+TEST(system_diff_from_binary_representation_plain) {
 	setup();
 	std::shared_ptr<SystemDiff> ptr = dynamic_pointer_cast<SystemDiff>(Diff::from_signature(Diff::SYSTEM_DIFF));
 	ptr->compressor = PlainCompressor::get();
@@ -91,7 +93,7 @@ TEST(system_diff_from_binary_representation__plain) {
 	ASSERT_SEQUENCE_EQUAL(ptr->data, data);
 }
 
-TEST(system_diff_from_binary_representation__zlib) {
+TEST(system_diff_from_binary_representation_zlib) {
 	setup();
 	std::shared_ptr<SystemDiff> ptr = dynamic_pointer_cast<SystemDiff>(Diff::from_signature(Diff::SYSTEM_DIFF));
 	ptr->compressor = ZLibCompressor::get();
@@ -104,14 +106,13 @@ TEST(system_diff_from_binary_representation__zlib) {
 	ASSERT_SEQUENCE_EQUAL(ptr->data, data);
 }
 
-TEST(system_diff_from_binary_representation__invalid) {
+TEST(system_diff_from_binary_representation_invalid) {
 	setup();
 	std::shared_ptr<SystemDiff> ptr = dynamic_pointer_cast<SystemDiff>(Diff::from_signature(Diff::SYSTEM_DIFF));
 	ptr->compressor = ZLibCompressor::get();
 
 	ASSERT_EQUAL(ptr->from_files(SRC, DEST), 0);
-	auto vec = ptr->binary_representation();
-	vec[0] = std::byte{150};
+	auto vec = ptr->binary_representation();	vec[0] = std::byte{150};
 	auto data = ptr->data;
 
 	ASSERT_EQUAL(ptr->from_binary_representation(vec), -1);
@@ -127,6 +128,7 @@ TEST(system_diff_apply_ok) {
 	ASSERT_EQUAL(ptr->from_files(SRC, DEST), 0);
 	auto vec = ptr->binary_representation();
 
+	std::system("chmod -R 777 " TEMP_FILE3);
 	std::system("rm -rf " TEMP_FILE3);
 	std::system("cp " SRC " " TEMP_FILE3);
 
@@ -140,6 +142,7 @@ TEST(system_diff_apply_cannot_read) {
 	ASSERT_EQUAL(ptr->from_files(SRC, DEST), 0);
 	auto vec = ptr->binary_representation();
 
+	std::system("chmod -R 777 " TEMP_FILE3);
 	std::system("rm -rf " TEMP_FILE3);
 	std::system("cp " SRC " " TEMP_FILE3);
 	std::system("chmod 444 " TEMP_FILE3);
@@ -155,6 +158,7 @@ TEST(system_diff_apply_empty_diff) {
 	ptr->data.clear();
 	auto vec = ptr->binary_representation();
 
+	std::system("chmod -R 777 " TEMP_FILE3);
 	std::system("rm -rf " TEMP_FILE3);
 	std::system("cp " SRC " " TEMP_FILE3);
 
